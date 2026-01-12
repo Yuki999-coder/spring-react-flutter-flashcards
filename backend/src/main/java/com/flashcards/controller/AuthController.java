@@ -6,6 +6,9 @@ import com.flashcards.dto.response.AuthResponse;
 import com.flashcards.model.entity.User;
 import com.flashcards.repository.UserRepository;
 import com.flashcards.security.JwtUtils;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +31,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
+@Tag(name = "Authentication", description = "API xác thực người dùng (Đăng ký, Đăng nhập)")
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
@@ -42,6 +46,7 @@ public class AuthController {
      * @param request Registration data (email, password)
      * @return JWT token and user info
      */
+    @Operation(summary = "Đăng ký tài khoản mới", description = "Tạo tài khoản mới và nhận JWT token")
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
         log.info("POST /api/v1/auth/register - email: {}", request.getEmail());
@@ -79,6 +84,7 @@ public class AuthController {
      * @param request Login credentials (email, password)
      * @return JWT token and user info
      */
+    @Operation(summary = "Đăng nhập hệ thống", description = "Xác thực người dùng và nhận JWT token")
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         log.info("POST /api/v1/auth/login - email: {}", request.getEmail());
@@ -126,6 +132,8 @@ public class AuthController {
      *
      * @return Current user info if token is valid
      */
+    @Operation(summary = "Kiểm tra token hợp lệ", description = "Xác minh token JWT hiện tại có hợp lệ không")
+    @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/validate")
     public ResponseEntity<AuthResponse> validateToken() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -155,6 +163,8 @@ public class AuthController {
      *
      * @return Current user info
      */
+    @Operation(summary = "Lấy thông tin người dùng hiện tại", description = "Trả về thông tin của người dùng đang đăng nhập")
+    @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/me")
     public ResponseEntity<AuthResponse> getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
