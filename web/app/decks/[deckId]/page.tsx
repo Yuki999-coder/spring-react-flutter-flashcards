@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, BookOpen, Brain, Plus } from 'lucide-react';
+import { ArrowLeft, BookOpen, Brain, Plus, Grid3x3 } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '@/lib/axios';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -87,6 +87,11 @@ export default function DeckDetailPage({ params }: PageProps) {
     router.push(`/decks/${deckId}/learn`);
   };
 
+  const handleMatch = () => {
+    if (!deck || cards.length === 0) return;
+    router.push(`/decks/${deckId}/match`);
+  };
+
   if (!deckId) {
     return null;
   }
@@ -165,6 +170,26 @@ export default function DeckDetailPage({ params }: PageProps) {
                 {cards.length === 0 && (
                   <TooltipContent>
                     <p>Cần có ít nhất 1 thẻ để bắt đầu học</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <Button
+                      onClick={handleMatch}
+                      disabled={cards.length === 0}
+                      variant="outline"
+                    >
+                      <Grid3x3 className="mr-2 h-4 w-4" />
+                      Match Game
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                {cards.length === 0 && (
+                  <TooltipContent>
+                    <p>Cần có ít nhất 1 thẻ để chơi game</p>
                   </TooltipContent>
                 )}
               </Tooltip>
