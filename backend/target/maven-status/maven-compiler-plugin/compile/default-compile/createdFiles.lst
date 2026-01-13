@@ -7,6 +7,7 @@ com\flashcards\repository\UserRepository.class
 com\flashcards\dto\ReviewRequest.class
 com\flashcards\dto\ReviewResponse$ReviewResponseBuilder.class
 com\flashcards\security\JwtAuthenticationFilter.class
+com\flashcards\validation\HtmlNotBlank.class
 com\flashcards\dto\request\CreateCardRequest.class
 com\flashcards\dto\request\LoginRequest.class
 com\flashcards\dto\response\ErrorResponse$ErrorResponseBuilder.class
@@ -20,6 +21,7 @@ com\flashcards\dto\response\ReviewResponse.class
 com\flashcards\dto\request\ReviewRequest.class
 com\flashcards\enums\ReviewGrade.class
 com\flashcards\security\CustomUserDetailsService.class
+com\flashcards\validation\HtmlNotBlankValidator.class
 com\flashcards\controller\DeckController.class
 com\flashcards\dto\response\DeckResponse.class
 com\flashcards\model\enums\SourceType.class
@@ -52,6 +54,7 @@ com\flashcards\model\entity\User.class
 com\flashcards\service\ReviewService$1.class
 com\flashcards\controller\ReviewController.class
 com\flashcards\exception\CardNotFoundException.class
+com\flashcards\dto\request\BulkCreateCardsRequest$BulkCreateCardsRequestBuilder.class
 com\flashcards\dto\response\AuthResponse.class
 com\flashcards\dto\request\LoginRequest$LoginRequestBuilder.class
 com\flashcards\dto\response\ErrorResponse.class
@@ -60,5 +63,6 @@ com\flashcards\model\entity\CardProgress$CardProgressBuilder.class
 com\flashcards\dto\request\CreateDeckRequest.class
 com\flashcards\dto\response\ReviewResponse$ReviewResponseBuilder.class
 com\flashcards\repository\CardProgressRepository.class
+com\flashcards\dto\request\BulkCreateCardsRequest.class
 com\flashcards\dto\request\UpdateCardRequest$UpdateCardRequestBuilder.class
 com\flashcards\model\entity\CardProgress.class

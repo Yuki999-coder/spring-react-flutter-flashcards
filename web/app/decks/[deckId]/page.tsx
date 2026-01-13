@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, BookOpen, Brain } from 'lucide-react';
+import { ArrowLeft, BookOpen, Brain, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '@/lib/axios';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -138,6 +138,16 @@ export default function DeckDetailPage({ params }: PageProps) {
             </div>
             <div className="flex gap-2">
               {deckId && <AddCardDialog deckId={parseInt(deckId)} onCardAdded={fetchData} />}
+              
+              {deckId && (
+                <Button
+                  variant="outline"
+                  onClick={() => router.push(`/decks/${deckId}/bulk-add`)}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Thêm hàng loạt
+                </Button>
+              )}
               
               <Tooltip>
                 <TooltipTrigger asChild>

@@ -73,6 +73,89 @@ public class CardService {
     }
 
     /**
+     * Bulk add cards to a deck
+     * All cards are saved in a single transaction
+     * Security: Verifies deck ownership once
+     *
+     * @param user Authenticated user
+     * @param requests List of card creation data
+     * @return List of created card responses
+     * @throws DeckNotFoundException if deck not found
+     * @throws UnauthorizedException if user doesn't own the deck
+     */
+    @Transactional
+    public List<CardResponse> bulkAddCardsToDeck(User user, List<CreateCardRequest> requests) {
+        if (requests == null || requests.isEmpty()) {
+            log.warn("Bulk add called with empty request list");
+            return List.of();
+        }
+
+        Long deckId = requests.get(0).getDeckId();
+        log.info("Bulk adding {} cards to deck {}: user={}", 
+                 requests.size(), deckId, user.getId());
+
+        // Verify deck exists and user owns it (only once)
+        Deck deck = verifyDeckOwnership(user.getId(), deckId);
+
+        // Validate HTML content
+        for (int i = 0; i < requests.size(); i++) {
+            CreateCardRequest request = requests.get(i);
+            log.debug("Validating card {}: term='{}', definition='{}'", 
+                     i, request.getTerm(), request.getDefinition());
+            
+            if (!hasTextContent(request.getTerm())) {
+                throw new IllegalArgumentException("Term at index " + i + " is empty or contains only HTML tags");
+            }
+            if (!hasTextContent(request.getDefinition())) {
+                throw new IllegalArgumentException("Definition at index " + i + " is empty or contains only HTML tags");
+            }
+        }
+
+        // Get starting position
+        int startPosition = calculateNextPosition(deckId);
+
+        // Create all cards
+        List<Card> cards = new java.util.ArrayList<>();
+        for (int i = 0; i < requests.size(); i++) {
+            CreateCardRequest request = requests.get(i);
+            
+            Card card = Card.builder()
+                    .deckId(deckId)
+                    .term(request.getTerm())
+                    .definition(request.getDefinition())
+                    .example(request.getExample())
+                    .imageUrl(request.getImageUrl())
+                    .audioUrl(request.getAudioUrl())
+                    .position(startPosition + i)
+                    .tags(request.getTags())
+                    .isDeleted(false)
+                    .build();
+            
+            cards.add(card);
+        }
+
+        // Save all cards in one batch
+        List<Card> savedCards = cardRepository.saveAll(cards);
+        log.info("Bulk created {} cards for deck {}", savedCards.size(), deckId);
+
+        // Convert to responses
+        return savedCards.stream()
+                .map(this::toCardResponse)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Check if HTML string has actual text content
+     */
+    private boolean hasTextContent(String html) {
+        if (html == null || html.isBlank()) {
+            return false;
+        }
+        String textContent = html.replaceAll("<[^>]*>", "").trim();
+        return !textContent.isEmpty();
+    }
+
+    /**
      * Update an existing card
      * Security: Verifies card ownership through deck
      *

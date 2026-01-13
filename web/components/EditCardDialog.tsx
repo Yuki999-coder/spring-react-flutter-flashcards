@@ -1,9 +1,6 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 import { toast } from 'sonner';
 import Image from 'next/image';
 import { Image as ImageIcon, X, Loader2 } from 'lucide-react';
@@ -19,17 +16,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-
-const editCardSchema = z.object({
-  term: z.string().min(1, 'Thuật ngữ không được để trống'),
-  definition: z.string().min(1, 'Định nghĩa không được để trống'),
-  example: z.string().optional(),
-});
-
-type EditCardFormData = z.infer<typeof editCardSchema>;
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
 
 interface EditCardDialogProps {
   open: boolean;
@@ -43,19 +31,17 @@ export function EditCardDialog({ open, onOpenChange, card, onUpdated }: EditCard
   const [imageUrl, setImageUrl] = useState<string>(card.imageUrl || '');
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<EditCardFormData>({
-    resolver: zodResolver(editCardSchema),
-    defaultValues: {
-      term: card.term,
-      definition: card.definition,
-      example: card.example || '',
-    },
-  });
+  
+  // Rich text editor content states
+  const [term, setTerm] = useState<string>(card.term);
+  const [definition, setDefinition] = useState<string>(card.definition);
+  const [example, setExample] = useState<string>(card.example || '');
+  
+  // Validation errors
+  const [errors, setErrors] = useState<{
+    term?: string;
+    definition?: string;
+  }>({});
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -88,14 +74,39 @@ export function EditCardDialog({ open, onOpenChange, card, onUpdated }: EditCard
       fileInputRef.current.value = '';
     }
   };
+  
+  // Validate form
+  const validateForm = (): boolean => {
+    const newErrors: { term?: string; definition?: string } = {};
+    
+    // Strip HTML tags to check if there's actual content
+    const stripHtml = (html: string) => html.replace(/<[^>]*>/g, '').trim();
+    
+    if (!stripHtml(term)) {
+      newErrors.term = 'Thuật ngữ không được để trống';
+    }
+    
+    if (!stripHtml(definition)) {
+      newErrors.definition = 'Định nghĩa không được để trống';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
-  const onSubmit = async (data: EditCardFormData) => {
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+    
     setIsLoading(true);
     try {
       await api.put(`/cards/${card.id}`, {
-        term: data.term,
-        definition: data.definition,
-        example: data.example || undefined,
+        term,
+        definition,
+        example: example || undefined,
         imageUrl: imageUrl || undefined,
       });
 
@@ -120,19 +131,19 @@ export function EditCardDialog({ open, onOpenChange, card, onUpdated }: EditCard
             Cập nhật nội dung cho thẻ học tập của bạn.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form onSubmit={onSubmit}>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="edit-term">
                 Thuật ngữ (Mặt trước) <span className="text-red-500">*</span>
               </Label>
-              <Input
-                id="edit-term"
-                {...register('term')}
-                className={errors.term ? 'border-red-500' : ''}
+              <RichTextEditor
+                content={term}
+                onChange={setTerm}
+                placeholder="Nhập thuật ngữ..."
               />
               {errors.term && (
-                <p className="text-sm text-red-500">{errors.term.message}</p>
+                <p className="text-sm text-red-500">{errors.term}</p>
               )}
             </div>
 
@@ -140,29 +151,25 @@ export function EditCardDialog({ open, onOpenChange, card, onUpdated }: EditCard
               <Label htmlFor="edit-definition">
                 Định nghĩa (Mặt sau) <span className="text-red-500">*</span>
               </Label>
-              <Textarea
-                id="edit-definition"
-                rows={3}
-                {...register('definition')}
-                className={errors.definition ? 'border-red-500' : ''}
+              <RichTextEditor
+                content={definition}
+                onChange={setDefinition}
+                placeholder="Nhập định nghĩa..."
               />
               {errors.definition && (
                 <p className="text-sm text-red-500">
-                  {errors.definition.message}
+                  {errors.definition}
                 </p>
               )}
             </div>
 
             <div className="grid gap-2">
               <Label htmlFor="edit-example">Ví dụ (Tùy chọn)</Label>
-              <Input
-                id="edit-example"
-                {...register('example')}
-                className={errors.example ? 'border-red-500' : ''}
+              <RichTextEditor
+                content={example}
+                onChange={setExample}
+                placeholder="Nhập ví dụ..."
               />
-              {errors.example && (
-                <p className="text-sm text-red-500">{errors.example.message}</p>
-              )}
             </div>
 
             {/* Image Upload Section */}

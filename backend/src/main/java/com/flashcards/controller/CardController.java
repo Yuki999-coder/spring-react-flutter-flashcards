@@ -61,6 +61,41 @@ public class CardController {
     }
 
     /**
+     * Bulk add cards to a deck
+     * POST /api/v1/decks/{deckId}/cards/bulk
+     *
+     * @param userDetails Authenticated user from JWT token
+     * @param deckId Deck ID
+     * @param requests List of card creation data (sent as array from frontend)
+     * @return List of created cards
+     */
+    @PostMapping("/decks/{deckId}/cards/bulk")
+    public ResponseEntity<List<CardResponse>> bulkAddCardsToDeck(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long deckId,
+            @RequestBody List<CreateCardRequest> requests) {
+        
+        User user = getCurrentUser(userDetails);
+        log.info("POST /api/v1/decks/{}/cards/bulk - userId: {}, count: {}", 
+                 deckId, user.getId(), requests != null ? requests.size() : 0);
+
+        if (requests == null || requests.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        // Log first request for debugging
+        log.debug("First request: term='{}', def='{}'", 
+                 requests.get(0).getTerm(), requests.get(0).getDefinition());
+
+        // Set deckId for all requests
+        requests.forEach(request -> request.setDeckId(deckId));
+
+        List<CardResponse> responses = cardService.bulkAddCardsToDeck(user, requests);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(responses);
+    }
+
+    /**
      * Get all cards in a deck
      * GET /api/v1/decks/{deckId}/cards
      *

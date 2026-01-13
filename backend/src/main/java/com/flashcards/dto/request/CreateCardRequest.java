@@ -1,6 +1,5 @@
 package com.flashcards.dto.request;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,10 +20,10 @@ public class CreateCardRequest {
     @NotNull(message = "Deck ID is required")
     private Long deckId;
 
-    @NotBlank(message = "Term is required")
+    @NotNull(message = "Term is required")
     private String term;
 
-    @NotBlank(message = "Definition is required")
+    @NotNull(message = "Definition is required")
     private String definition;
 
     private String example;

@@ -154,10 +154,25 @@ export function CardList({ cards, isLoading, onCardDeleted, onCardUpdated }: Car
                 <TableCell className="font-medium text-muted-foreground">
                   {index + 1}
                 </TableCell>
-                <TableCell className="font-medium">{card.term}</TableCell>
-                <TableCell>{card.definition}</TableCell>
+                <TableCell className="font-medium">
+                  <div 
+                    className="prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{ __html: card.term }} 
+                  />
+                </TableCell>
+                <TableCell>
+                  <div 
+                    className="prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{ __html: card.definition }} 
+                  />
+                </TableCell>
                 <TableCell className="text-muted-foreground">
-                  {card.example || '-'}
+                  {card.example ? (
+                    <div 
+                      className="prose prose-sm max-w-none"
+                      dangerouslySetInnerHTML={{ __html: card.example }} 
+                    />
+                  ) : '-'}
                 </TableCell>
                 <TableCell>{getLearningStateBadge(card.learningState)}</TableCell>
                 <TableCell>

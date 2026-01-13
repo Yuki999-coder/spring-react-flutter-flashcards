@@ -2,6 +2,7 @@ E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\co
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\dto\request\UpdateCardRequest.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\model\entity\Card.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\controller\AuthController.java
+E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\dto\request\BulkCreateCardsRequest.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\exception\UnauthorizedException.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\model\enums\SourceType.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\dto\request\CreateCardRequest.java
@@ -17,6 +18,7 @@ E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\co
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\dto\request\ReviewRequest.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\dto\request\CreateDeckRequest.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\service\CardService.java
+E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\validation\HtmlNotBlank.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\config\OpenApiConfig.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\repository\DeckRepository.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\exception\CardNotFoundException.java
@@ -28,6 +30,7 @@ E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\dt
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\exception\GlobalExceptionHandler.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\model\enums\LearningState.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\security\CustomUserDetailsService.java
+E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\validation\HtmlNotBlankValidator.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\dto\response\ReviewResponse.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\model\entity\User.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\dto\response\ErrorResponse.java

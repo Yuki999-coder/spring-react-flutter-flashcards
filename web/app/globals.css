@@ -133,3 +133,77 @@
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
+
+/* Tiptap Editor Styles */
+.tiptap {
+  outline: none;
+}
+
+.tiptap p.is-editor-empty:first-child::before {
+  color: var(--muted-foreground);
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+.tiptap mark {
+  border-radius: 0.25rem;
+  padding: 0.125rem 0.25rem;
+}
+
+/* Smooth animations for card add/remove */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+.card-enter {
+  animation: slideIn 0.3s ease-out;
+}
+
+.card-exit {
+  animation: slideOut 0.3s ease-out;
+}
+
+/* Prose styles for rendered HTML content */
+.prose {
+  @apply text-foreground;
+}
+
+.prose p {
+  @apply my-0;
+}
+
+.prose strong {
+  @apply font-bold;
+}
+
+.prose em {
+  @apply italic;
+}
+
+.prose u {
+  @apply underline;
+}
+
+.prose mark {
+  @apply rounded px-1;
+}
