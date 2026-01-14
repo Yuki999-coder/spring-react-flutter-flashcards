@@ -34,6 +34,9 @@ public class Deck {
 
     @Column(name = "user_id", nullable = false)
     private Long userId;
+    
+    @Column(name = "folder_id")
+    private Long folderId;
 
     @Column(nullable = false, length = 255)
     private String title;
@@ -64,4 +67,8 @@ public class Deck {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private User user;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "folder_id", insertable = false, updatable = false)
+    private Folder folder;
 }

@@ -1,5 +1,6 @@
 package com.flashcards.dto.response;
 
+import com.flashcards.model.enums.LearningState;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,4 +29,10 @@ public class CardResponse {
     private List<String> tags;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    
+    // Learning progress fields
+    private LearningState learningState;
+    private LocalDateTime nextReview;
+    private Double easeFactor;
+    private Integer interval;
 }

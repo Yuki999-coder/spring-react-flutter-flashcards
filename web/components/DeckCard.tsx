@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { BookOpen, MoreVertical, Pencil, Trash } from "lucide-react";
+import { BookOpen, MoreVertical, Pencil, Trash, FolderInput } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/axios";
 import { Button } from "@/components/ui/button";
@@ -32,18 +32,21 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { EditDeckDialog } from "@/components/EditDeckDialog";
+import { MoveDeckToFolderDialog } from "@/components/MoveDeckToFolderDialog";
 import { Deck } from "@/types/deck";
 
 interface DeckCardProps {
   deck: Deck;
   onDeleted?: () => void;
   onUpdated?: () => void;
+  onMoved?: () => void;
 }
 
-export function DeckCard({ deck, onDeleted, onUpdated }: DeckCardProps) {
+export function DeckCard({ deck, onDeleted, onUpdated, onMoved }: DeckCardProps) {
   const router = useRouter();
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isMoveOpen, setIsMoveOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const truncateDescription = (
@@ -120,6 +123,15 @@ export function DeckCard({ deck, onDeleted, onUpdated }: DeckCardProps) {
                   <Pencil className="mr-2 h-4 w-4" />
                   Chỉnh sửa
                 </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsMoveOpen(true);
+                  }}
+                >
+                  <FolderInput className="mr-2 h-4 w-4" />
+                  Chuyển vào Folder...
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="text-red-600 focus:text-red-600"
@@ -158,6 +170,15 @@ export function DeckCard({ deck, onDeleted, onUpdated }: DeckCardProps) {
         deck={deck}
         onUpdated={() => {
           onUpdated?.();
+        }}
+      />
+
+      <MoveDeckToFolderDialog
+        open={isMoveOpen}
+        onOpenChange={setIsMoveOpen}
+        deck={deck}
+        onMoved={() => {
+          onMoved?.();
         }}
       />
 

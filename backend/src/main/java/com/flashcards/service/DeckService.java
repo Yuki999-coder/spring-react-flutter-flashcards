@@ -176,14 +176,16 @@ public class DeckService {
 
     /**
      * Convert Deck entity to DeckResponse DTO
+     * Made public so FolderService can use it
      */
-    private DeckResponse toDeckResponse(Deck deck) {
+    public DeckResponse toDeckResponse(Deck deck) {
         // Count cards in this deck (excludes soft-deleted cards)
         long cardCount = cardRepository.countByDeckId(deck.getId());
 
         return DeckResponse.builder()
                 .id(deck.getId())
                 .userId(deck.getUserId())
+                .folderId(deck.getFolderId())
                 .title(deck.getTitle())
                 .description(deck.getDescription())
                 .sourceType(deck.getSourceType())

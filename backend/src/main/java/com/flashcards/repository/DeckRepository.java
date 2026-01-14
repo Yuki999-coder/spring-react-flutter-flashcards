@@ -42,4 +42,23 @@ public interface DeckRepository extends JpaRepository<Deck, Long> {
      * @return Number of decks (excluding soft-deleted)
      */
     long countByUserId(Long userId);
+    
+    /**
+     * Find uncategorized decks (not in any folder)
+     * Security: Only returns decks belonging to the specified user
+     *
+     * @param userId User ID who owns the decks
+     * @return List of decks without folder
+     */
+    List<Deck> findByUserIdAndFolderIdIsNull(Long userId);
+    
+    /**
+     * Find decks in a specific folder
+     * Security: Ensures decks belong to the specified user
+     *
+     * @param folderId Folder ID
+     * @param userId User ID who owns the decks
+     * @return List of decks in the folder
+     */
+    List<Deck> findByFolderIdAndUserId(Long folderId, Long userId);
 }

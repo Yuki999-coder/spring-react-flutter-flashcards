@@ -1,30 +1,32 @@
 package com.flashcards.dto.response;
 
-import com.flashcards.model.enums.SourceType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
- * Response DTO for Deck
+ * Response DTO for Folder
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class DeckResponse {
-
+public class FolderResponse {
+    
     private Long id;
-    private Long userId;
-    private Long folderId;
-    private String title;
+    private String name;
     private String description;
-    private SourceType sourceType;
-    private String sourceId;
-    private Integer cardCount;
+    private Long userId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    
+    // Count of decks in this folder
+    private Integer deckCount;
+    
+    // Optional: List of decks (only populated when requested)
+    private List<DeckResponse> decks;
 }

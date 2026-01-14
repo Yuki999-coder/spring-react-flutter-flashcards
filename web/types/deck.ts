@@ -1,5 +1,6 @@
 export interface Deck {
   id: number;
+  folderId?: number | null;
   title: string;
   description: string | null;
   sourceType: string;

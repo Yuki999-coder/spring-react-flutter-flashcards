@@ -1,4 +1,5 @@
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\controller\CardController.java
+E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\exception\FolderNotFoundException.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\dto\request\BulkCreateCardsRequest.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\dto\request\CreateCardRequest.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\model\entity\StudyLog.java
@@ -16,6 +17,7 @@ E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\ex
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\enums\ReviewGrade.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\repository\StudyLogRepository.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\dto\request\LoginRequest.java
+E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\controller\FolderController.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\dto\response\DeckResponse.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\exception\GlobalExceptionHandler.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\model\enums\LearningState.java
@@ -24,6 +26,7 @@ E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\dt
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\dto\response\ErrorResponse.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\controller\ReviewController.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\repository\CardRepository.java
+E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\dto\request\UpdateFolderRequest.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\model\entity\CardProgress.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\security\JwtUtils.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\model\entity\Deck.java
@@ -39,16 +42,21 @@ E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\mo
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\dto\response\ImportResultDTO.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\controller\DeckController.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\repository\CardProgressRepository.java
+E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\dto\response\FolderResponse.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\config\SecurityConfig.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\validation\HtmlNotBlank.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\config\OpenApiConfig.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\repository\DeckRepository.java
+E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\service\FolderService.java
+E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\model\entity\Folder.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\dto\ReviewResponse.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\validation\HtmlNotBlankValidator.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\model\entity\User.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\controller\StatisticsController.java
+E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\dto\request\CreateFolderRequest.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\exception\DeckNotFoundException.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\FlashcardsApplication.java
+E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\repository\FolderRepository.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\dto\request\UpdateDeckRequest.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\security\JwtAuthenticationFilter.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\dto\response\CardResponse.java

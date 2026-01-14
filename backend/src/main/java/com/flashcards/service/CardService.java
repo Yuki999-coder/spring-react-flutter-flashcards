@@ -7,8 +7,10 @@ import com.flashcards.exception.CardNotFoundException;
 import com.flashcards.exception.DeckNotFoundException;
 import com.flashcards.exception.UnauthorizedException;
 import com.flashcards.model.entity.Card;
+import com.flashcards.model.entity.CardProgress;
 import com.flashcards.model.entity.Deck;
 import com.flashcards.model.entity.User;
+import com.flashcards.repository.CardProgressRepository;
 import com.flashcards.repository.CardRepository;
 import com.flashcards.repository.DeckRepository;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +32,7 @@ public class CardService {
 
     private final CardRepository cardRepository;
     private final DeckRepository deckRepository;
+    private final CardProgressRepository cardProgressRepository;
 
     /**
      * Add a new card to a deck
@@ -69,7 +72,7 @@ public class CardService {
         log.info("Card created: id={}, deckId={}, position={}", 
                  savedCard.getId(), savedCard.getDeckId(), savedCard.getPosition());
 
-        return toCardResponse(savedCard);
+        return toCardResponse(savedCard, user);
     }
 
     /**
@@ -140,7 +143,7 @@ public class CardService {
 
         // Convert to responses
         return savedCards.stream()
-                .map(this::toCardResponse)
+                .map(card -> toCardResponse(card, user))
                 .collect(Collectors.toList());
     }
 
@@ -183,7 +186,7 @@ public class CardService {
         Card updatedCard = cardRepository.save(card);
         log.info("Card updated: id={}", cardId);
 
-        return toCardResponse(updatedCard);
+        return toCardResponse(updatedCard, user);
     }
 
     /**
@@ -226,7 +229,7 @@ public class CardService {
         log.debug("Getting card {}: user={}", cardId, user.getId());
 
         Card card = getCardWithOwnershipCheck(user.getId(), cardId);
-        return toCardResponse(card);
+        return toCardResponse(card, user);
     }
 
     /**
@@ -252,7 +255,7 @@ public class CardService {
         List<Card> cards = cardRepository.findAllByDeckIdAndDeckUserIdOrderByPositionAsc(deckId, user.getId());
 
         return cards.stream()
-                .map(this::toCardResponse)
+                .map(card -> toCardResponse(card, user))
                 .collect(Collectors.toList());
     }
 
@@ -285,7 +288,7 @@ public class CardService {
         Card updatedCard = cardRepository.save(card);
         log.info("Card position updated: id={}, position={}", cardId, newPosition);
 
-        return toCardResponse(updatedCard);
+        return toCardResponse(updatedCard, user);
     }
 
     /**
@@ -372,7 +375,7 @@ public class CardService {
         log.info("Found {} difficult cards in deck {}", difficultCards.size(), deckId);
         
         return difficultCards.stream()
-                .map(this::toCardResponse)
+                .map(card -> toCardResponse(card, user))
                 .collect(Collectors.toList());
     }
 
@@ -400,10 +403,14 @@ public class CardService {
     }
 
     /**
-     * Convert Card entity to CardResponse DTO
+     * Convert Card entity to CardResponse DTO with learning progress
      */
-    private CardResponse toCardResponse(Card card) {
-        return CardResponse.builder()
+    private CardResponse toCardResponse(Card card, User user) {
+        // Get card progress for this user
+        CardProgress progress = cardProgressRepository.findByUserIdAndCardId(user.getId(), card.getId())
+                .orElse(null);
+        
+        CardResponse.CardResponseBuilder builder = CardResponse.builder()
                 .id(card.getId())
                 .deckId(card.getDeckId())
                 .term(card.getTerm())
@@ -414,7 +421,16 @@ public class CardService {
                 .position(card.getPosition())
                 .tags(card.getTags())
                 .createdAt(card.getCreatedAt())
-                .updatedAt(card.getUpdatedAt())
-                .build();
+                .updatedAt(card.getUpdatedAt());
+        
+        // Add learning progress if exists
+        if (progress != null) {
+            builder.learningState(progress.getLearningState())
+                   .nextReview(progress.getNextReview())
+                   .easeFactor(Double.valueOf(progress.getEaseFactor()))
+                   .interval(progress.getInterval());
+        }
+        
+        return builder.build();
     }
 }
