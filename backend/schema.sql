@@ -68,6 +68,7 @@ CREATE TABLE study_log (
     user_id BIGINT NOT NULL,
     card_id BIGINT NOT NULL,
     grade VARCHAR(10) NOT NULL,
+    action VARCHAR(20),
     time_taken_ms INT,
     reviewed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_log_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,

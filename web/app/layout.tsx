@@ -26,9 +26,9 @@ export default function RootLayout({
   return (
     <html lang="vi">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}
       >
-        {children}
+        <div className="page-enter min-h-screen">{children}</div>
         <Toaster position="top-center" richColors />
       </body>
     </html>

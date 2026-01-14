@@ -118,4 +118,19 @@ public interface CardProgressRepository extends JpaRepository<CardProgress, Long
            "AND d.isDeleted = false " +
            "AND cp.learningState = 'REVIEWING'")
     long countReviewingCards(@Param("userId") Long userId);
+
+    /**
+     * Count due cards (cards that need to be reviewed now)
+     *
+     * @param userId User ID
+     * @return Count of due cards
+     */
+    @Query("SELECT COUNT(cp) FROM CardProgress cp " +
+           "INNER JOIN Card c ON cp.cardId = c.id " +
+           "INNER JOIN Deck d ON c.deckId = d.id " +
+           "WHERE cp.userId = :userId " +
+           "AND c.isDeleted = false " +
+           "AND d.isDeleted = false " +
+           "AND (cp.nextReview <= CURRENT_TIMESTAMP OR cp.nextReview IS NULL)")
+    long countDueCards(@Param("userId") Long userId);
 }

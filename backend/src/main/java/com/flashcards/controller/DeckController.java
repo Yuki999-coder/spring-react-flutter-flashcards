@@ -1,17 +1,22 @@
 package com.flashcards.controller;
 
 import com.flashcards.dto.request.CreateDeckRequest;
+import com.flashcards.dto.request.ImportCardsRequest;
 import com.flashcards.dto.request.UpdateDeckRequest;
 import com.flashcards.dto.response.DeckResponse;
+import com.flashcards.dto.response.ImportResultDTO;
 import com.flashcards.exception.UnauthorizedException;
 import com.flashcards.model.entity.User;
 import com.flashcards.repository.UserRepository;
 import com.flashcards.security.CustomUserDetailsService;
 import com.flashcards.service.DeckService;
+import com.flashcards.service.ImportExportService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -31,6 +36,7 @@ import java.util.List;
 public class DeckController {
 
     private final DeckService deckService;
+    private final ImportExportService importExportService;
     private final CustomUserDetailsService userDetailsService;
 
     /**
@@ -155,6 +161,82 @@ public class DeckController {
         long count = deckService.getDeckCount(user);
 
         return ResponseEntity.ok(count);
+    }
+
+    /**
+     * Import cards from text
+     * POST /api/v1/decks/{deckId}/import
+     *
+     * @param userDetails Authenticated user from JWT token
+     * @param deckId Deck ID to import cards into
+     * @param request Import request with content and delimiter
+     * @return Import result with statistics
+     */
+    @PostMapping("/{deckId}/import")
+    public ResponseEntity<ImportResultDTO> importCards(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long deckId,
+            @Valid @RequestBody ImportCardsRequest request) {
+        
+        User user = getCurrentUser(userDetails);
+        log.info("POST /api/v1/decks/{}/import - userId: {}", deckId, user.getId());
+
+        ImportResultDTO result = importExportService.importCards(user, deckId, request);
+
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * Export cards to CSV
+     * GET /api/v1/decks/{deckId}/export/csv
+     *
+     * @param userDetails Authenticated user from JWT token
+     * @param deckId Deck ID to export
+     * @return CSV file as text
+     */
+    @GetMapping("/{deckId}/export/csv")
+    public ResponseEntity<String> exportToCSV(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long deckId) {
+        
+        User user = getCurrentUser(userDetails);
+        log.info("GET /api/v1/decks/{}/export/csv - userId: {}", deckId, user.getId());
+
+        String csv = importExportService.exportToCSV(user, deckId);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("text/csv"));
+        headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"deck-" + deckId + ".csv\"");
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(csv);
+    }
+
+    /**
+     * Export cards to Quizlet format (Tab-delimited)
+     * GET /api/v1/decks/{deckId}/export/quizlet
+     *
+     * @param userDetails Authenticated user from JWT token
+     * @param deckId Deck ID to export
+     * @return Quizlet format text
+     */
+    @GetMapping("/{deckId}/export/quizlet")
+    public ResponseEntity<String> exportToQuizlet(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long deckId) {
+        
+        User user = getCurrentUser(userDetails);
+        log.info("GET /api/v1/decks/{}/export/quizlet - userId: {}", deckId, user.getId());
+
+        String text = importExportService.exportToQuizlet(user, deckId);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.TEXT_PLAIN);
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(text);
     }
 
     /**

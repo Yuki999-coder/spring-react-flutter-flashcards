@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useState, useRef } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { Plus, Image as ImageIcon, X, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
-import Image from 'next/image';
-import { api } from '@/lib/axios';
-import { uploadImageToCloudinary, validateImageFile } from '@/lib/cloudinary';
-import { Button } from '@/components/ui/button';
+import { useState, useRef } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Plus, Image as ImageIcon, X, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import Image from "next/image";
+import { api } from "@/lib/axios";
+import { uploadImageToCloudinary, validateImageFile } from "@/lib/cloudinary";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -18,15 +18,15 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { CreateCardRequest } from '@/types/card';
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { CreateCardRequest } from "@/types/card";
 
 const createCardSchema = z.object({
-  term: z.string().min(1, 'Thuật ngữ không được để trống'),
-  definition: z.string().min(1, 'Định nghĩa không được để trống'),
+  term: z.string().min(1, "Thuật ngữ không được để trống"),
+  definition: z.string().min(1, "Định nghĩa không được để trống"),
   example: z.string().optional(),
 });
 
@@ -40,7 +40,7 @@ interface AddCardDialogProps {
 export function AddCardDialog({ deckId, onCardAdded }: AddCardDialogProps) {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [imageUrl, setImageUrl] = useState<string>('');
+  const [imageUrl, setImageUrl] = useState<string>("");
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -68,22 +68,22 @@ export function AddCardDialog({ deckId, onCardAdded }: AddCardDialogProps) {
     try {
       const url = await uploadImageToCloudinary(file);
       setImageUrl(url);
-      toast.success('Upload ảnh thành công!');
+      toast.success("Upload ảnh thành công!");
     } catch (error: any) {
-      toast.error(error.message || 'Upload ảnh thất bại');
+      toast.error(error.message || "Upload ảnh thất bại");
     } finally {
       setIsUploading(false);
       // Reset file input
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = "";
       }
     }
   };
 
   const handleRemoveImage = () => {
-    setImageUrl('');
+    setImageUrl("");
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
@@ -100,13 +100,14 @@ export function AddCardDialog({ deckId, onCardAdded }: AddCardDialogProps) {
 
       await api.post(`/decks/${deckId}/cards`, payload);
 
-      toast.success('Thêm thẻ thành công!');
+      toast.success("Thêm thẻ thành công!");
       reset(); // Reset form
-      setImageUrl(''); // Reset image
+      setImageUrl(""); // Reset image
       onCardAdded(); // Refresh list
     } catch (error: any) {
       const message =
-        error.response?.data?.message || 'Không thể thêm thẻ. Vui lòng thử lại.';
+        error.response?.data?.message ||
+        "Không thể thêm thẻ. Vui lòng thử lại.";
       toast.error(message);
     } finally {
       setIsLoading(false);
@@ -125,7 +126,8 @@ export function AddCardDialog({ deckId, onCardAdded }: AddCardDialogProps) {
         <DialogHeader>
           <DialogTitle>Thêm thẻ mới</DialogTitle>
           <DialogDescription>
-            Tạo một thẻ học tập mới. Bạn có thể tiếp tục thêm nhiều thẻ liên tiếp.
+            Tạo một thẻ học tập mới. Bạn có thể tiếp tục thêm nhiều thẻ liên
+            tiếp.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -137,8 +139,8 @@ export function AddCardDialog({ deckId, onCardAdded }: AddCardDialogProps) {
               <Input
                 id="term"
                 placeholder="VD: apple"
-                {...register('term')}
-                className={errors.term ? 'border-red-500' : ''}
+                {...register("term")}
+                className={errors.term ? "border-red-500" : ""}
               />
               {errors.term && (
                 <p className="text-sm text-red-500">{errors.term.message}</p>
@@ -153,8 +155,8 @@ export function AddCardDialog({ deckId, onCardAdded }: AddCardDialogProps) {
                 id="definition"
                 placeholder="VD: quả táo"
                 rows={3}
-                {...register('definition')}
-                className={errors.definition ? 'border-red-500' : ''}
+                {...register("definition")}
+                className={errors.definition ? "border-red-500" : ""}
               />
               {errors.definition && (
                 <p className="text-sm text-red-500">
@@ -168,8 +170,8 @@ export function AddCardDialog({ deckId, onCardAdded }: AddCardDialogProps) {
               <Input
                 id="example"
                 placeholder="VD: I like apples."
-                {...register('example')}
-                className={errors.example ? 'border-red-500' : ''}
+                {...register("example")}
+                className={errors.example ? "border-red-500" : ""}
               />
               {errors.example && (
                 <p className="text-sm text-red-500">{errors.example.message}</p>
@@ -179,7 +181,7 @@ export function AddCardDialog({ deckId, onCardAdded }: AddCardDialogProps) {
             {/* Image Upload Section */}
             <div className="grid gap-2">
               <Label>Hình ảnh (Tùy chọn)</Label>
-              
+
               {/* Upload Button */}
               {!imageUrl && (
                 <div>
@@ -250,7 +252,7 @@ export function AddCardDialog({ deckId, onCardAdded }: AddCardDialogProps) {
               Đóng
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Đang thêm...' : 'Thêm thẻ'}
+              {isLoading ? "Đang thêm..." : "Thêm thẻ"}
             </Button>
           </DialogFooter>
         </form>

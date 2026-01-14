@@ -1,5 +1,9 @@
-import { Card } from '@/types/card';
-import { MultipleChoiceQuestion, WrittenQuestion, Question } from '@/types/learn';
+import { Card } from "@/types/card";
+import {
+  MultipleChoiceQuestion,
+  WrittenQuestion,
+  Question,
+} from "@/types/learn";
 
 /**
  * Shuffle mảng bằng Fisher-Yates algorithm
@@ -15,20 +19,22 @@ function shuffle<T>(array: T[]): T[] {
 
 /**
  * Tạo câu hỏi trắc nghiệm từ danh sách thẻ
- * 
+ *
  * Logic:
  * 1. Với mỗi thẻ, lấy definition của nó làm đáp án đúng
  * 2. Lấy random 3 definition khác từ các thẻ còn lại làm đáp án sai
  * 3. Shuffle 4 đáp án
  * 4. Lưu lại index của đáp án đúng
- * 
- * Edge Case: 
+ *
+ * Edge Case:
  * - Nếu deck có < 4 thẻ: Lấy tất cả thẻ còn lại làm đáp án sai (không đủ 4 options)
- * 
+ *
  * @param cards Danh sách thẻ trong deck
  * @returns Mảng câu hỏi trắc nghiệm đã shuffle
  */
-export function generateMultipleChoiceQuestions(cards: Card[]): MultipleChoiceQuestion[] {
+export function generateMultipleChoiceQuestions(
+  cards: Card[]
+): MultipleChoiceQuestion[] {
   if (cards.length === 0) {
     return [];
   }
@@ -55,7 +61,7 @@ export function generateMultipleChoiceQuestions(cards: Card[]): MultipleChoiceQu
     const correctIndex = shuffledOptions.indexOf(correctAnswer);
 
     return {
-      type: 'MCQ',
+      type: "MCQ",
       id: card.id,
       question: card.term,
       correctAnswer,
@@ -72,11 +78,11 @@ export function generateMultipleChoiceQuestions(cards: Card[]): MultipleChoiceQu
 
 /**
  * Tạo câu hỏi tự luận (gõ phím) từ danh sách thẻ
- * 
+ *
  * Logic:
  * - Câu hỏi: Definition (+ image nếu có)
  * - Đáp án: Term (người dùng phải gõ chính xác)
- * 
+ *
  * @param cards Danh sách thẻ trong deck
  * @returns Mảng câu hỏi tự luận đã shuffle
  */
@@ -86,7 +92,7 @@ export function generateWrittenQuestions(cards: Card[]): WrittenQuestion[] {
   }
 
   const questions: WrittenQuestion[] = cards.map((card) => ({
-    type: 'WRITTEN',
+    type: "WRITTEN",
     id: card.id,
     question: card.definition,
     correctAnswer: card.term,
@@ -99,7 +105,7 @@ export function generateWrittenQuestions(cards: Card[]): WrittenQuestion[] {
 
 /**
  * Tạo câu hỏi hỗn hợp (random MCQ và WRITTEN)
- * 
+ *
  * @param cards Danh sách thẻ trong deck
  * @returns Mảng câu hỏi hỗn hợp đã shuffle
  */
@@ -124,7 +130,7 @@ export function generateMixedQuestions(cards: Card[]): Question[] {
       const correctIndex = shuffledOptions.indexOf(correctAnswer);
 
       return {
-        type: 'MCQ',
+        type: "MCQ",
         id: card.id,
         question: card.term,
         correctAnswer,
@@ -136,7 +142,7 @@ export function generateMixedQuestions(cards: Card[]): Question[] {
     } else {
       // Tạo câu WRITTEN
       return {
-        type: 'WRITTEN',
+        type: "WRITTEN",
         id: card.id,
         question: card.definition,
         correctAnswer: card.term,
@@ -160,21 +166,24 @@ function normalizeString(str: string): string {
 
 /**
  * Kiểm tra đáp án tự luận có đúng không
- * 
+ *
  * Logic:
  * - Strip HTML tags từ correctAnswer trước
  * - Trim khoảng trắng 2 đầu
  * - Case-insensitive (không phân biệt hoa thường)
  * - Ví dụ: " Apple " == "apple" -> TRUE
  * - Ví dụ: "<p>Apple</p>" và nhập "Apple" -> TRUE
- * 
+ *
  * @param userInput Đáp án người dùng nhập
  * @param correctAnswer Đáp án đúng (có thể chứa HTML)
  * @returns true nếu đúng, false nếu sai
  */
-export function checkWrittenAnswer(userInput: string, correctAnswer: string): boolean {
+export function checkWrittenAnswer(
+  userInput: string,
+  correctAnswer: string
+): boolean {
   // Strip HTML từ correctAnswer trước khi so sánh
-  const cleanCorrectAnswer = correctAnswer.replace(/<[^>]*>/g, '').trim();
+  const cleanCorrectAnswer = correctAnswer.replace(/<[^>]*>/g, "").trim();
   return normalizeString(userInput) === normalizeString(cleanCorrectAnswer);
 }
 
@@ -186,10 +195,12 @@ export function checkAnswer(
   selectedIndex?: number,
   userInput?: string
 ): boolean {
-  if (question.type === 'MCQ') {
+  if (question.type === "MCQ") {
     return selectedIndex === question.correctIndex;
   } else {
-    return userInput ? checkWrittenAnswer(userInput, question.correctAnswer) : false;
+    return userInput
+      ? checkWrittenAnswer(userInput, question.correctAnswer)
+      : false;
   }
 }
 

@@ -1,20 +1,26 @@
-'use client';
+"use client";
 
-import { useEditor, EditorContent, Editor } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import { Underline } from '@tiptap/extension-underline';
-import { TextStyle } from '@tiptap/extension-text-style';
-import { Color } from '@tiptap/extension-color';
-import { Highlight } from '@tiptap/extension-highlight';
-import { Bold, Italic, UnderlineIcon, Palette, Highlighter } from 'lucide-react';
-import { useEffect, forwardRef, useImperativeHandle } from 'react';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { useEditor, EditorContent, Editor } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import { Underline } from "@tiptap/extension-underline";
+import { TextStyle } from "@tiptap/extension-text-style";
+import { Color } from "@tiptap/extension-color";
+import { Highlight } from "@tiptap/extension-highlight";
+import {
+  Bold,
+  Italic,
+  UnderlineIcon,
+  Palette,
+  Highlighter,
+} from "lucide-react";
+import { useEffect, forwardRef, useImperativeHandle } from "react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
+} from "@/components/ui/popover";
 
 interface RichTextEditorProps {
   value?: string;
@@ -25,23 +31,23 @@ interface RichTextEditorProps {
 }
 
 const COLORS = [
-  { name: 'Đen', value: '#000000' },
-  { name: 'Đỏ', value: '#ef4444' },
-  { name: 'Cam', value: '#f97316' },
-  { name: 'Vàng', value: '#eab308' },
-  { name: 'Xanh lá', value: '#22c55e' },
-  { name: 'Xanh dương', value: '#3b82f6' },
-  { name: 'Tím', value: '#a855f7' },
-  { name: 'Hồng', value: '#ec4899' },
+  { name: "Đen", value: "#000000" },
+  { name: "Đỏ", value: "#ef4444" },
+  { name: "Cam", value: "#f97316" },
+  { name: "Vàng", value: "#eab308" },
+  { name: "Xanh lá", value: "#22c55e" },
+  { name: "Xanh dương", value: "#3b82f6" },
+  { name: "Tím", value: "#a855f7" },
+  { name: "Hồng", value: "#ec4899" },
 ];
 
 const HIGHLIGHT_COLORS = [
-  { name: 'Vàng', value: '#fef08a' },
-  { name: 'Xanh lá', value: '#bbf7d0' },
-  { name: 'Xanh dương', value: '#bfdbfe' },
-  { name: 'Hồng', value: '#fbcfe8' },
-  { name: 'Tím', value: '#e9d5ff' },
-  { name: 'Cam', value: '#fed7aa' },
+  { name: "Vàng", value: "#fef08a" },
+  { name: "Xanh lá", value: "#bbf7d0" },
+  { name: "Xanh dương", value: "#bfdbfe" },
+  { name: "Hồng", value: "#fbcfe8" },
+  { name: "Tím", value: "#e9d5ff" },
+  { name: "Cam", value: "#fed7aa" },
 ];
 
 export interface RichTextEditorRef {
@@ -69,17 +75,26 @@ const ToolbarButton = ({
     onClick={onClick}
     disabled={disabled}
     title={title}
-    className={cn(
-      'h-8 w-8 p-0',
-      isActive && 'bg-muted'
-    )}
+    className={cn("h-8 w-8 p-0", isActive && "bg-muted")}
   >
     {children}
   </Button>
 );
 
-export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>(
-  ({ value = '', onChange, placeholder = 'Nhập nội dung...', className, disabled = false }, ref) => {
+export const RichTextEditor = forwardRef<
+  RichTextEditorRef,
+  RichTextEditorProps
+>(
+  (
+    {
+      value = "",
+      onChange,
+      placeholder = "Nhập nội dung...",
+      className,
+      disabled = false,
+    },
+    ref
+  ) => {
     const editor = useEditor({
       immediatelyRender: false,
       extensions: [
@@ -106,9 +121,9 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
       editorProps: {
         attributes: {
           class: cn(
-            'prose prose-sm max-w-none focus:outline-none min-h-[80px] p-3',
-            'prose-p:my-1 prose-p:leading-relaxed',
-            disabled && 'opacity-50 cursor-not-allowed'
+            "prose prose-sm max-w-none focus:outline-none min-h-[80px] p-3",
+            "prose-p:my-1 prose-p:leading-relaxed",
+            disabled && "opacity-50 cursor-not-allowed"
           ),
         },
       },
@@ -132,12 +147,12 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
     }
 
     return (
-      <div className={cn('border rounded-lg bg-background', className)}>
+      <div className={cn("border rounded-lg bg-background", className)}>
         {/* Toolbar */}
         <div className="border-b px-2 py-1.5 flex items-center gap-1 flex-wrap">
           <ToolbarButton
             onClick={() => editor.chain().focus().toggleBold().run()}
-            isActive={editor.isActive('bold')}
+            isActive={editor.isActive("bold")}
             disabled={disabled}
             title="Bold (Ctrl+B)"
           >
@@ -146,7 +161,7 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
 
           <ToolbarButton
             onClick={() => editor.chain().focus().toggleItalic().run()}
-            isActive={editor.isActive('italic')}
+            isActive={editor.isActive("italic")}
             disabled={disabled}
             title="Italic (Ctrl+I)"
           >
@@ -155,7 +170,7 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
 
           <ToolbarButton
             onClick={() => editor.chain().focus().toggleUnderline().run()}
-            isActive={editor.isActive('underline')}
+            isActive={editor.isActive("underline")}
             disabled={disabled}
             title="Underline (Ctrl+U)"
           >
@@ -184,12 +199,14 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
                   <button
                     key={color.value}
                     type="button"
-                    onClick={() => editor.chain().focus().setColor(color.value).run()}
+                    onClick={() =>
+                      editor.chain().focus().setColor(color.value).run()
+                    }
                     className={cn(
-                      'w-8 h-8 rounded border-2 hover:scale-110 transition-transform',
-                      editor.isActive('textStyle', { color: color.value })
-                        ? 'border-primary'
-                        : 'border-transparent'
+                      "w-8 h-8 rounded border-2 hover:scale-110 transition-transform",
+                      editor.isActive("textStyle", { color: color.value })
+                        ? "border-primary"
+                        : "border-transparent"
                     )}
                     style={{ backgroundColor: color.value }}
                     title={color.name}
@@ -228,12 +245,18 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
                   <button
                     key={color.value}
                     type="button"
-                    onClick={() => editor.chain().focus().setHighlight({ color: color.value }).run()}
+                    onClick={() =>
+                      editor
+                        .chain()
+                        .focus()
+                        .setHighlight({ color: color.value })
+                        .run()
+                    }
                     className={cn(
-                      'w-8 h-8 rounded border-2 hover:scale-110 transition-transform',
-                      editor.isActive('highlight', { color: color.value })
-                        ? 'border-primary'
-                        : 'border-transparent'
+                      "w-8 h-8 rounded border-2 hover:scale-110 transition-transform",
+                      editor.isActive("highlight", { color: color.value })
+                        ? "border-primary"
+                        : "border-transparent"
                     )}
                     style={{ backgroundColor: color.value }}
                     title={color.name}
@@ -267,4 +290,4 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
   }
 );
 
-RichTextEditor.displayName = 'RichTextEditor';
+RichTextEditor.displayName = "RichTextEditor";

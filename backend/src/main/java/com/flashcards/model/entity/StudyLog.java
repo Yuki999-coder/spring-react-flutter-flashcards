@@ -36,6 +36,9 @@ public class StudyLog {
     @Column(nullable = false, length = 10)
     private Grade grade;
 
+    @Column(length = 20)
+    private String action; // "LEARN", "REVIEW" - for statistics
+
     @Column(name = "time_taken_ms")
     private Integer timeTakenMs;
 

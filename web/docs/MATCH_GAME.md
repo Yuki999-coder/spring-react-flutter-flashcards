@@ -7,9 +7,11 @@ Game "Match" (Ghép thẻ) giống Quizlet - một trò chơi tương tác giúp
 ## 🎮 Cách chơi
 
 ### Mục tiêu
+
 Ghép các mảnh **Term** (Thuật ngữ) với **Definition** (Định nghĩa) tương ứng trong thời gian nhanh nhất.
 
 ### Luật chơi
+
 1. Game chọn ngẫu nhiên **6 thẻ** từ deck (hoặc ít hơn nếu deck nhỏ)
 2. Mỗi thẻ được tách thành **2 mảnh**:
    - 📝 Mảnh Term (Thuật ngữ)
@@ -23,33 +25,39 @@ Ghép các mảnh **Term** (Thuật ngữ) với **Definition** (Định nghĩa)
 ## 🎯 Tính năng
 
 ### 1. **Timer (Đồng hồ bấm giờ)**
+
 - ⏱️ Tự động bắt đầu khi vào game
 - 📊 Hiển thị thời gian hoàn thành khi thắng
 - 🔄 Reset khi chơi lại
 
 ### 2. **Grid Layout (Lưới thẻ)**
+
 - 📱 **Mobile**: 2 cột
 - 💻 **Tablet**: 3 cột
 - 🖥️ **Desktop**: 4 cột
 - Responsive và đẹp mắt trên mọi thiết bị
 
 ### 3. **Rich Text Support**
+
 - ✅ Hiển thị HTML formatting (bold, italic, colors, etc.)
 - ✅ Sử dụng `dangerouslySetInnerHTML` và prose classes
 - ✅ Tương tự Learn Mode
 
 ### 4. **Image Support**
+
 - 🖼️ Hiển thị hình ảnh nếu definition có `imageUrl`
 - 📐 Size: 64x64px, rounded corners
 - 📍 Position: Trên text
 
 ### 5. **Animations**
+
 - ✨ **Select**: Scale 0.95 + Blue background
 - ✅ **Correct**: Green background → Fade out
 - ❌ **Wrong**: Red background + Shake animation
 - 🎉 **Win**: Confetti celebration
 
 ### 6. **Win Screen**
+
 - 🏆 Trophy icon
 - ⏱️ Hiển thị thời gian hoàn thành (format: MM:SS)
 - 🔄 Nút "Chơi lại"
@@ -58,6 +66,7 @@ Ghép các mảnh **Term** (Thuật ngữ) với **Definition** (Định nghĩa)
 ## 🔧 Cấu trúc Code
 
 ### Files
+
 ```
 web/
 ├── app/
@@ -70,6 +79,7 @@ web/
 ```
 
 ### State Management
+
 ```typescript
 // Game pieces
 const [pieces, setPieces] = useState<MatchPiece[]>([]);
@@ -92,19 +102,21 @@ const [isComplete, setIsComplete] = useState(false);
 ```
 
 ### Data Structure
+
 ```typescript
 interface MatchPiece {
-  id: string;              // "term-123" or "def-123"
-  cardId: number;          // Card ID (for matching)
-  type: 'term' | 'definition';
-  content: string;         // HTML content
-  imageUrl?: string;       // Optional image
+  id: string; // "term-123" or "def-123"
+  cardId: number; // Card ID (for matching)
+  type: "term" | "definition";
+  content: string; // HTML content
+  imageUrl?: string; // Optional image
 }
 ```
 
 ## 🎨 UI Components
 
 ### MatchCard
+
 ```typescript
 interface MatchCardProps {
   piece: MatchPiece;
@@ -115,12 +127,14 @@ interface MatchCardProps {
 ```
 
 **States:**
+
 - Default: White background, gray border
 - Selected: Blue background, blue border, scale 0.95
 - Wrong: Red background, red border, shake animation
 - Matched: Hidden (display: none)
 
 ### Grid CSS
+
 ```css
 .grid {
   grid-cols-2      /* Mobile */
@@ -133,11 +147,26 @@ interface MatchCardProps {
 ## 🎬 Animation Details
 
 ### Shake (Wrong Match)
+
 ```css
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
-  20%, 40%, 60%, 80% { transform: translateX(4px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-4px);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(4px);
+  }
 }
 
 .animate-shake {
@@ -146,13 +175,14 @@ interface MatchCardProps {
 ```
 
 ### Confetti (Win)
+
 ```typescript
 confetti({
   particleCount: 3,
   angle: 60,
   spread: 55,
   origin: { x: 0 },
-  colors: ['#3b82f6', '#8b5cf6', '#ec4899'],
+  colors: ["#3b82f6", "#8b5cf6", "#ec4899"],
 });
 ```
 
@@ -166,46 +196,48 @@ graph TD
     D --> E[Shuffle Pieces]
     E --> F[Start Timer]
     F --> G[Display Grid]
-    
+
     G --> H{Click Piece}
     H --> I{First Piece?}
     I -->|Yes| J[Select Piece 1]
     I -->|No| K[Select Piece 2]
-    
+
     K --> L{Same cardId?}
     L -->|Yes| M[Correct Match]
     L -->|No| N[Wrong Match]
-    
+
     M --> O[Green + Fade Out]
     N --> P[Red + Shake]
-    
+
     O --> Q{All Matched?}
     P --> G
-    
+
     Q -->|Yes| R[Stop Timer]
     Q -->|No| G
-    
+
     R --> S[Show Win Screen]
     S --> T[Confetti Animation]
 ```
 
 ## 📱 Responsive Design
 
-| Device | Columns | Gap | Card Size |
-|--------|---------|-----|-----------|
-| Mobile (< 768px) | 2 | 12px | ~150px |
-| Tablet (768-1024px) | 3 | 16px | ~180px |
-| Desktop (> 1024px) | 4 | 16px | ~200px |
+| Device              | Columns | Gap  | Card Size |
+| ------------------- | ------- | ---- | --------- |
+| Mobile (< 768px)    | 2       | 12px | ~150px    |
+| Tablet (768-1024px) | 3       | 16px | ~180px    |
+| Desktop (> 1024px)  | 4       | 16px | ~200px    |
 
 ## 🎯 User Experience
 
 ### Feedback
+
 - ✅ **Visual**: Color changes (blue/green/red)
 - ✅ **Animation**: Scale, shake, fade out
 - ✅ **Sound**: Toast notifications (optional)
 - ✅ **Confetti**: Win celebration
 
 ### Accessibility
+
 - ✅ Keyboard accessible (click events)
 - ✅ High contrast colors
 - ✅ Clear visual feedback
@@ -214,12 +246,14 @@ graph TD
 ## 🚀 Performance
 
 ### Optimization
+
 - ✅ useState for local state (no Redux overhead)
 - ✅ useEffect cleanup for timer
 - ✅ Minimal re-renders (Set for matched pieces)
 - ✅ CSS animations (GPU accelerated)
 
 ### Loading Strategy
+
 ```typescript
 // Fetch cards once on mount
 useEffect(() => {

@@ -74,4 +74,18 @@ public interface CardRepository extends JpaRepository<Card, Long> {
      * @return List of cards ordered by position
      */
     List<Card> findAllByDeckIdOrderByPositionAsc(Long deckId);
+
+    /**
+     * Find all cards owned by a user (across all decks)
+     * Used for statistics and analytics
+     *
+     * @param userId User ID
+     * @return List of all cards in all decks owned by the user
+     */
+    @Query("SELECT c FROM Card c " +
+           "INNER JOIN Deck d ON c.deckId = d.id " +
+           "WHERE d.userId = :userId " +
+           "AND c.isDeleted = false " +
+           "AND d.isDeleted = false")
+    List<Card> findAllByDeck_User_Id(@Param("userId") Long userId);
 }

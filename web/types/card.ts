@@ -8,7 +8,12 @@ export interface Card {
   audioUrl?: string;
   position: number;
   tags: string[];
-  learningState: "NEW" | "LEARNING_MCQ" | "LEARNING_TYPING" | "REVIEWING" | "RELEARNING";
+  learningState:
+    | "NEW"
+    | "LEARNING_MCQ"
+    | "LEARNING_TYPING"
+    | "REVIEWING"
+    | "RELEARNING";
   nextReview?: string;
   createdAt: string;
 }

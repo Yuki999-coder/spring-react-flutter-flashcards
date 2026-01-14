@@ -1,22 +1,48 @@
-'use client';
+"use client";
 
-import { Button } from '@/components/ui/button';
-import { motion } from 'framer-motion';
+import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
 
 interface ReviewControlsProps {
   isVisible: boolean;
-  onReview: (grade: 'AGAIN' | 'HARD' | 'GOOD' | 'EASY') => void;
+  onReview: (grade: "AGAIN" | "HARD" | "GOOD" | "EASY") => void;
   isLoading: boolean;
 }
 
-export function ReviewControls({ isVisible, onReview, isLoading }: ReviewControlsProps) {
+export function ReviewControls({
+  isVisible,
+  onReview,
+  isLoading,
+}: ReviewControlsProps) {
   if (!isVisible) return null;
 
   const buttons = [
-    { grade: 'AGAIN' as const, label: 'Quên', key: '1', variant: 'destructive' as const },
-    { grade: 'HARD' as const, label: 'Khó', key: '2', variant: 'outline' as const, className: 'border-orange-500 text-orange-600 hover:bg-orange-50' },
-    { grade: 'GOOD' as const, label: 'Tốt', key: '3', variant: 'default' as const },
-    { grade: 'EASY' as const, label: 'Dễ', key: '4', variant: 'outline' as const, className: 'border-green-500 text-green-600 hover:bg-green-50' },
+    {
+      grade: "AGAIN" as const,
+      label: "Quên",
+      key: "1",
+      variant: "destructive" as const,
+    },
+    {
+      grade: "HARD" as const,
+      label: "Khó",
+      key: "2",
+      variant: "outline" as const,
+      className: "border-orange-500 text-orange-600 hover:bg-orange-50",
+    },
+    {
+      grade: "GOOD" as const,
+      label: "Tốt",
+      key: "3",
+      variant: "default" as const,
+    },
+    {
+      grade: "EASY" as const,
+      label: "Dễ",
+      key: "4",
+      variant: "outline" as const,
+      className: "border-green-500 text-green-600 hover:bg-green-50",
+    },
   ];
 
   return (

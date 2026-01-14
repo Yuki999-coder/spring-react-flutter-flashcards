@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { toast } from 'sonner';
-import Link from 'next/link';
-import { api } from '@/lib/axios';
-import { useAuthStore } from '@/store/useAuthStore';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { toast } from "sonner";
+import Link from "next/link";
+import { api } from "@/lib/axios";
+import { useAuthStore } from "@/store/useAuthStore";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -19,17 +19,17 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from "@/components/ui/card";
 
 const registerSchema = z
   .object({
-    email: z.string().email('Email không hợp lệ'),
-    password: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
+    email: z.string().email("Email không hợp lệ"),
+    password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: 'Mật khẩu xác nhận không khớp',
-    path: ['confirmPassword'],
+    message: "Mật khẩu xác nhận không khớp",
+    path: ["confirmPassword"],
   });
 
 type RegisterFormData = z.infer<typeof registerSchema>;
@@ -50,18 +50,19 @@ export default function RegisterPage() {
   const onSubmit = async (data: RegisterFormData) => {
     setIsLoading(true);
     try {
-      const response = await api.post('/auth/register', {
+      const response = await api.post("/auth/register", {
         email: data.email,
         password: data.password,
       });
       const { token, email, id } = response.data;
 
       setAuth(token, { id, email });
-      toast.success('Đăng ký thành công!');
-      router.push('/');
+      toast.success("Đăng ký thành công!");
+      router.push("/");
     } catch (error: any) {
       const message =
-        error.response?.data?.message || 'Đăng ký thất bại. Email có thể đã tồn tại.';
+        error.response?.data?.message ||
+        "Đăng ký thất bại. Email có thể đã tồn tại.";
       toast.error(message);
     } finally {
       setIsLoading(false);
@@ -87,8 +88,8 @@ export default function RegisterPage() {
                 id="email"
                 type="email"
                 placeholder="example@email.com"
-                {...register('email')}
-                className={errors.email ? 'border-red-500' : ''}
+                {...register("email")}
+                className={errors.email ? "border-red-500" : ""}
               />
               {errors.email && (
                 <p className="text-sm text-red-500">{errors.email.message}</p>
@@ -100,8 +101,8 @@ export default function RegisterPage() {
                 id="password"
                 type="password"
                 placeholder="••••••••"
-                {...register('password')}
-                className={errors.password ? 'border-red-500' : ''}
+                {...register("password")}
+                className={errors.password ? "border-red-500" : ""}
               />
               {errors.password && (
                 <p className="text-sm text-red-500">
@@ -115,8 +116,8 @@ export default function RegisterPage() {
                 id="confirmPassword"
                 type="password"
                 placeholder="••••••••"
-                {...register('confirmPassword')}
-                className={errors.confirmPassword ? 'border-red-500' : ''}
+                {...register("confirmPassword")}
+                className={errors.confirmPassword ? "border-red-500" : ""}
               />
               {errors.confirmPassword && (
                 <p className="text-sm text-red-500">
@@ -126,15 +127,11 @@ export default function RegisterPage() {
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isLoading}
-            >
-              {isLoading ? 'Đang đăng ký...' : 'Đăng ký'}
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? "Đang đăng ký..." : "Đăng ký"}
             </Button>
             <p className="text-sm text-center text-muted-foreground">
-              Đã có tài khoản?{' '}
+              Đã có tài khoản?{" "}
               <Link
                 href="/login"
                 className="font-semibold text-primary hover:underline"

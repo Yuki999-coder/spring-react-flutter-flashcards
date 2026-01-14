@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { toast } from 'sonner';
-import { api } from '@/lib/axios';
-import { Deck } from '@/types/deck';
-import { Button } from '@/components/ui/button';
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { toast } from "sonner";
+import { api } from "@/lib/axios";
+import { Deck } from "@/types/deck";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -15,13 +15,16 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 const editDeckSchema = z.object({
-  title: z.string().min(1, 'Tiêu đề không được để trống').max(255, 'Tiêu đề quá dài'),
+  title: z
+    .string()
+    .min(1, "Tiêu đề không được để trống")
+    .max(255, "Tiêu đề quá dài"),
   description: z.string().optional(),
 });
 
@@ -34,7 +37,12 @@ interface EditDeckDialogProps {
   onUpdated: () => void;
 }
 
-export function EditDeckDialog({ open, onOpenChange, deck, onUpdated }: EditDeckDialogProps) {
+export function EditDeckDialog({
+  open,
+  onOpenChange,
+  deck,
+  onUpdated,
+}: EditDeckDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   const {
@@ -45,7 +53,7 @@ export function EditDeckDialog({ open, onOpenChange, deck, onUpdated }: EditDeck
     resolver: zodResolver(editDeckSchema),
     defaultValues: {
       title: deck.title,
-      description: deck.description || '',
+      description: deck.description || "",
     },
   });
 
@@ -57,12 +65,13 @@ export function EditDeckDialog({ open, onOpenChange, deck, onUpdated }: EditDeck
         description: data.description || undefined,
       });
 
-      toast.success('Cập nhật bộ thẻ thành công!');
+      toast.success("Cập nhật bộ thẻ thành công!");
       onOpenChange(false);
       onUpdated();
     } catch (error: any) {
       const message =
-        error.response?.data?.message || 'Không thể cập nhật bộ thẻ. Vui lòng thử lại.';
+        error.response?.data?.message ||
+        "Không thể cập nhật bộ thẻ. Vui lòng thử lại.";
       toast.error(message);
     } finally {
       setIsLoading(false);
@@ -86,8 +95,8 @@ export function EditDeckDialog({ open, onOpenChange, deck, onUpdated }: EditDeck
               </Label>
               <Input
                 id="edit-title"
-                {...register('title')}
-                className={errors.title ? 'border-red-500' : ''}
+                {...register("title")}
+                className={errors.title ? "border-red-500" : ""}
               />
               {errors.title && (
                 <p className="text-sm text-red-500">{errors.title.message}</p>
@@ -98,8 +107,8 @@ export function EditDeckDialog({ open, onOpenChange, deck, onUpdated }: EditDeck
               <Textarea
                 id="edit-description"
                 rows={4}
-                {...register('description')}
-                className={errors.description ? 'border-red-500' : ''}
+                {...register("description")}
+                className={errors.description ? "border-red-500" : ""}
               />
               {errors.description && (
                 <p className="text-sm text-red-500">
@@ -118,7 +127,7 @@ export function EditDeckDialog({ open, onOpenChange, deck, onUpdated }: EditDeck
               Hủy
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Đang lưu...' : 'Lưu thay đổi'}
+              {isLoading ? "Đang lưu..." : "Lưu thay đổi"}
             </Button>
           </DialogFooter>
         </form>

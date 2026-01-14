@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { Plus } from 'lucide-react';
-import { toast } from 'sonner';
-import { api } from '@/lib/axios';
-import { Button } from '@/components/ui/button';
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Plus } from "lucide-react";
+import { toast } from "sonner";
+import { api } from "@/lib/axios";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -16,14 +16,17 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { CreateDeckRequest } from '@/types/deck';
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { CreateDeckRequest } from "@/types/deck";
 
 const createDeckSchema = z.object({
-  title: z.string().min(1, 'Tiêu đề không được để trống').max(255, 'Tiêu đề quá dài'),
+  title: z
+    .string()
+    .min(1, "Tiêu đề không được để trống")
+    .max(255, "Tiêu đề quá dài"),
   description: z.string().optional(),
 });
 
@@ -54,15 +57,16 @@ export function CreateDeckDialog({ onDeckCreated }: CreateDeckDialogProps) {
         description: data.description || undefined,
       };
 
-      await api.post('/decks', payload);
-      
-      toast.success('Tạo bộ thẻ thành công!');
+      await api.post("/decks", payload);
+
+      toast.success("Tạo bộ thẻ thành công!");
       reset();
       setOpen(false);
       onDeckCreated();
     } catch (error: any) {
       const message =
-        error.response?.data?.message || 'Không thể tạo bộ thẻ. Vui lòng thử lại.';
+        error.response?.data?.message ||
+        "Không thể tạo bộ thẻ. Vui lòng thử lại.";
       toast.error(message);
     } finally {
       setIsLoading(false);
@@ -93,8 +97,8 @@ export function CreateDeckDialog({ onDeckCreated }: CreateDeckDialogProps) {
               <Input
                 id="title"
                 placeholder="VD: Từ vựng IELTS Unit 1"
-                {...register('title')}
-                className={errors.title ? 'border-red-500' : ''}
+                {...register("title")}
+                className={errors.title ? "border-red-500" : ""}
               />
               {errors.title && (
                 <p className="text-sm text-red-500">{errors.title.message}</p>
@@ -106,8 +110,8 @@ export function CreateDeckDialog({ onDeckCreated }: CreateDeckDialogProps) {
                 id="description"
                 placeholder="VD: Các từ vựng quan trọng trong Unit 1..."
                 rows={4}
-                {...register('description')}
-                className={errors.description ? 'border-red-500' : ''}
+                {...register("description")}
+                className={errors.description ? "border-red-500" : ""}
               />
               {errors.description && (
                 <p className="text-sm text-red-500">
@@ -126,7 +130,7 @@ export function CreateDeckDialog({ onDeckCreated }: CreateDeckDialogProps) {
               Hủy
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Đang tạo...' : 'Tạo bộ thẻ'}
+              {isLoading ? "Đang tạo..." : "Tạo bộ thẻ"}
             </Button>
           </DialogFooter>
         </form>

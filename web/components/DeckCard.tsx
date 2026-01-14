@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { BookOpen, MoreVertical, Pencil, Trash } from 'lucide-react';
-import { toast } from 'sonner';
-import { api } from '@/lib/axios';
-import { Button } from '@/components/ui/button';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { BookOpen, MoreVertical, Pencil, Trash } from "lucide-react";
+import { toast } from "sonner";
+import { api } from "@/lib/axios";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -13,14 +13,14 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,9 +30,9 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { EditDeckDialog } from '@/components/EditDeckDialog';
-import { Deck } from '@/types/deck';
+} from "@/components/ui/alert-dialog";
+import { EditDeckDialog } from "@/components/EditDeckDialog";
+import { Deck } from "@/types/deck";
 
 interface DeckCardProps {
   deck: Deck;
@@ -40,22 +40,26 @@ interface DeckCardProps {
   onUpdated?: () => void;
 }
 
-
 export function DeckCard({ deck, onDeleted, onUpdated }: DeckCardProps) {
   const router = useRouter();
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const truncateDescription = (text: string | null, maxLength: number = 100) => {
-    if (!text) return 'Chưa có mô tả';
-    return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
+  const truncateDescription = (
+    text: string | null,
+    maxLength: number = 100
+  ) => {
+    if (!text) return "Chưa có mô tả";
+    return text.length > maxLength
+      ? `${text.substring(0, maxLength)}...`
+      : text;
   };
 
   const handleCardClick = (e: React.MouseEvent) => {
     // Không navigate khi click vào dropdown menu
     const target = e.target as HTMLElement;
-    if (target.closest('[data-dropdown-trigger]')) {
+    if (target.closest("[data-dropdown-trigger]")) {
       return;
     }
     router.push(`/decks/${deck.id}`);
@@ -65,11 +69,13 @@ export function DeckCard({ deck, onDeleted, onUpdated }: DeckCardProps) {
     setIsDeleting(true);
     try {
       await api.delete(`/decks/${deck.id}`);
-      toast.success('Đã xóa bộ thẻ thành công!');
+      toast.success("Đã xóa bộ thẻ thành công!");
       setIsDeleteOpen(false);
       onDeleted?.();
     } catch (error: any) {
-      const message = error.response?.data?.message || 'Không thể xóa bộ thẻ. Vui lòng thử lại.';
+      const message =
+        error.response?.data?.message ||
+        "Không thể xóa bộ thẻ. Vui lòng thử lại.";
       toast.error(message);
     } finally {
       setIsDeleting(false);
@@ -78,15 +84,17 @@ export function DeckCard({ deck, onDeleted, onUpdated }: DeckCardProps) {
 
   return (
     <>
-      <Card 
-        className="group hover:shadow-lg transition-all duration-300 hover:border-primary/50 cursor-pointer"
+      <Card
+        className="group hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 hover:border-primary/60 cursor-pointer bg-white/80 backdrop-blur-sm border-2 rounded-2xl overflow-hidden"
         onClick={handleCardClick}
       >
-        <CardHeader>
+        <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
-              <CardTitle className="line-clamp-1">{deck.title}</CardTitle>
-              <CardDescription className="line-clamp-2">
+              <CardTitle className="line-clamp-1 text-xl font-bold bg-gradient-to-r from-primary to-violet-600 bg-clip-text text-transparent">
+                {deck.title}
+              </CardTitle>
+              <CardDescription className="line-clamp-2 mt-1.5 text-sm">
                 {truncateDescription(deck.description)}
               </CardDescription>
             </div>
@@ -95,23 +103,25 @@ export function DeckCard({ deck, onDeleted, onUpdated }: DeckCardProps) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 -mt-1 -mr-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="h-8 w-8 -mt-1 -mr-1 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary/10"
                   data-dropdown-trigger
                   onClick={(e) => e.stopPropagation()}
                 >
                   <MoreVertical className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={(e) => {
-                  e.stopPropagation();
-                  setIsEditOpen(true);
-                }}>
+              <DropdownMenuContent align="end" className="rounded-xl">
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsEditOpen(true);
+                  }}
+                >
                   <Pencil className="mr-2 h-4 w-4" />
                   Chỉnh sửa
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   className="text-red-600 focus:text-red-600"
                   onClick={(e) => {
                     e.stopPropagation();
@@ -125,15 +135,15 @@ export function DeckCard({ deck, onDeleted, onUpdated }: DeckCardProps) {
             </DropdownMenu>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <BookOpen className="h-4 w-4" />
-            <span>{deck.cardCount ?? 0} thẻ</span>
+        <CardContent className="pb-4">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground bg-primary/5 rounded-lg px-3 py-2 border border-primary/10">
+            <BookOpen className="h-4 w-4 text-primary" />
+            <span className="font-medium">{deck.cardCount ?? 0} thẻ</span>
           </div>
         </CardContent>
-        <CardFooter>
+        <CardFooter className="pt-0">
           <Button
-            className="w-full group-hover:bg-primary group-hover:text-primary-foreground"
+            className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all shadow-sm group-hover:shadow-md"
             variant="outline"
           >
             <BookOpen className="mr-2 h-4 w-4" />
@@ -156,7 +166,8 @@ export function DeckCard({ deck, onDeleted, onUpdated }: DeckCardProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Xác nhận xóa bộ thẻ</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn có chắc chắn muốn xóa bộ thẻ <strong>&quot;{deck.title}&quot;</strong>?
+              Bạn có chắc chắn muốn xóa bộ thẻ{" "}
+              <strong>&quot;{deck.title}&quot;</strong>?
               <br />
               Hành động này không thể hoàn tác.
             </AlertDialogDescription>
@@ -168,7 +179,7 @@ export function DeckCard({ deck, onDeleted, onUpdated }: DeckCardProps) {
               disabled={isDeleting}
               className="bg-red-600 hover:bg-red-700"
             >
-              {isDeleting ? 'Đang xóa...' : 'Xóa'}
+              {isDeleting ? "Đang xóa..." : "Xóa"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -176,4 +187,3 @@ export function DeckCard({ deck, onDeleted, onUpdated }: DeckCardProps) {
     </>
   );
 }
-

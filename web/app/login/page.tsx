@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { toast } from 'sonner';
-import Link from 'next/link';
-import { api } from '@/lib/axios';
-import { useAuthStore } from '@/store/useAuthStore';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { toast } from "sonner";
+import Link from "next/link";
+import { api } from "@/lib/axios";
+import { useAuthStore } from "@/store/useAuthStore";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -19,11 +19,11 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from "@/components/ui/card";
 
 const loginSchema = z.object({
-  email: z.string().email('Email không hợp lệ'),
-  password: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
+  email: z.string().email("Email không hợp lệ"),
+  password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -44,15 +44,15 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     try {
-      const response = await api.post('/auth/login', data);
+      const response = await api.post("/auth/login", data);
       const { token, email, id } = response.data;
 
       setAuth(token, { id, email });
-      toast.success('Đăng nhập thành công!');
-      router.push('/');
+      toast.success("Đăng nhập thành công!");
+      router.push("/");
     } catch (error: any) {
       const message =
-        error.response?.data?.message || 'Email hoặc mật khẩu không đúng';
+        error.response?.data?.message || "Email hoặc mật khẩu không đúng";
       toast.error(message);
     } finally {
       setIsLoading(false);
@@ -78,8 +78,8 @@ export default function LoginPage() {
                 id="email"
                 type="email"
                 placeholder="example@email.com"
-                {...register('email')}
-                className={errors.email ? 'border-red-500' : ''}
+                {...register("email")}
+                className={errors.email ? "border-red-500" : ""}
               />
               {errors.email && (
                 <p className="text-sm text-red-500">{errors.email.message}</p>
@@ -91,8 +91,8 @@ export default function LoginPage() {
                 id="password"
                 type="password"
                 placeholder="••••••••"
-                {...register('password')}
-                className={errors.password ? 'border-red-500' : ''}
+                {...register("password")}
+                className={errors.password ? "border-red-500" : ""}
               />
               {errors.password && (
                 <p className="text-sm text-red-500">
@@ -102,15 +102,11 @@ export default function LoginPage() {
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isLoading}
-            >
-              {isLoading ? 'Đang đăng nhập...' : 'Đăng nhập'}
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
             </Button>
             <p className="text-sm text-center text-muted-foreground">
-              Chưa có tài khoản?{' '}
+              Chưa có tài khoản?{" "}
               <Link
                 href="/register"
                 className="font-semibold text-primary hover:underline"

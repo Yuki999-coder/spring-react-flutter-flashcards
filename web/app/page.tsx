@@ -1,16 +1,17 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { BookOpen, LogOut } from 'lucide-react';
-import { toast } from 'sonner';
-import { api } from '@/lib/axios';
-import { useAuthStore } from '@/store/useAuthStore';
-import { Deck } from '@/types/deck';
-import { DeckCard } from '@/components/DeckCard';
-import { CreateDeckDialog } from '@/components/CreateDeckDialog';
-import { DeckSkeleton } from '@/components/DeckSkeleton';
-import { Button } from '@/components/ui/button';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { BookOpen, LogOut } from "lucide-react";
+import { toast } from "sonner";
+import { api } from "@/lib/axios";
+import { useAuthStore } from "@/store/useAuthStore";
+import { Deck } from "@/types/deck";
+import { DeckCard } from "@/components/DeckCard";
+import { CreateDeckDialog } from "@/components/CreateDeckDialog";
+import { DeckSkeleton } from "@/components/DeckSkeleton";
+import { StatisticsBlock } from "@/components/StatisticsBlock";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   const router = useRouter();
@@ -20,7 +21,7 @@ export default function Home() {
 
   useEffect(() => {
     if (!isAuthenticated()) {
-      router.push('/login');
+      router.push("/login");
       return;
     }
     fetchDecks();
@@ -29,11 +30,11 @@ export default function Home() {
   const fetchDecks = async () => {
     setIsLoading(true);
     try {
-      const response = await api.get('/decks');
+      const response = await api.get("/decks");
       setDecks(response.data);
     } catch (error: any) {
       const message =
-        error.response?.data?.message || 'Không thể tải danh sách bộ thẻ';
+        error.response?.data?.message || "Không thể tải danh sách bộ thẻ";
       toast.error(message);
     } finally {
       setIsLoading(false);
@@ -42,8 +43,8 @@ export default function Home() {
 
   const handleLogout = () => {
     logout();
-    toast.success('Đăng xuất thành công');
-    router.push('/login');
+    toast.success("Đăng xuất thành công");
+    router.push("/login");
   };
 
   return (
@@ -69,6 +70,9 @@ export default function Home() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
+        {/* Statistics Block */}
+        <StatisticsBlock />
+
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div>
             <h2 className="text-3xl font-bold tracking-tight">
@@ -78,7 +82,17 @@ export default function Home() {
               Quản lý và học tập với các bộ thẻ flashcard
             </p>
           </div>
-          <CreateDeckDialog onDeckCreated={fetchDecks} />
+          <div className="flex gap-3">
+            <Button
+              onClick={() => router.push('/review/all')}
+              size="lg"
+              className="bg-gradient-to-r from-primary to-violet-600 hover:from-primary/90 hover:to-violet-600/90"
+            >
+              <BookOpen className="h-5 w-5 mr-2" />
+              Ôn tập tổng hợp
+            </Button>
+            <CreateDeckDialog onDeckCreated={fetchDecks} />
+          </div>
         </div>
 
         {/* Decks Grid */}
@@ -93,9 +107,7 @@ export default function Home() {
             <div className="rounded-full bg-muted p-6 mb-4">
               <BookOpen className="h-12 w-12 text-muted-foreground" />
             </div>
-            <h3 className="text-2xl font-semibold mb-2">
-              Chưa có bộ thẻ nào
-            </h3>
+            <h3 className="text-2xl font-semibold mb-2">Chưa có bộ thẻ nào</h3>
             <p className="text-muted-foreground mb-6 max-w-md">
               Bắt đầu hành trình học tập của bạn bằng cách tạo bộ thẻ đầu tiên.
               Thêm từ vựng, khái niệm hoặc bất kỳ nội dung nào bạn muốn ghi nhớ!
@@ -105,9 +117,9 @@ export default function Home() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {decks.map((deck) => (
-              <DeckCard 
-                key={deck.id} 
-                deck={deck} 
+              <DeckCard
+                key={deck.id}
+                deck={deck}
                 onDeleted={fetchDecks}
                 onUpdated={fetchDecks}
               />

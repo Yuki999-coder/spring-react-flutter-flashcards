@@ -1,29 +1,39 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import Image from 'next/image';
-import { ArrowLeft, BookOpen, CheckCircle2, XCircle, Trophy, PenTool, ListChecks, Shuffle, Volume2 } from 'lucide-react';
-import { toast } from 'sonner';
-import confetti from 'canvas-confetti';
-import { api } from '@/lib/axios';
-import { useAuthStore } from '@/store/useAuthStore';
-import { Card } from '@/types/card';
-import { Question, AnswerResult } from '@/types/learn';
-import { stripHtml } from '@/lib/htmlUtils';
-import { useTTS } from '@/hooks/use-tts';
-import { 
-  generateMultipleChoiceQuestions, 
+import { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import {
+  ArrowLeft,
+  BookOpen,
+  CheckCircle2,
+  XCircle,
+  Trophy,
+  PenTool,
+  ListChecks,
+  Shuffle,
+  Volume2,
+} from "lucide-react";
+import { toast } from "sonner";
+import confetti from "canvas-confetti";
+import { api } from "@/lib/axios";
+import { useAuthStore } from "@/store/useAuthStore";
+import { Card } from "@/types/card";
+import { Question, AnswerResult } from "@/types/learn";
+import { stripHtml } from "@/lib/htmlUtils";
+import { useTTS } from "@/hooks/use-tts";
+import {
+  generateMultipleChoiceQuestions,
   generateWrittenQuestions,
   generateMixedQuestions,
-  checkAnswer, 
+  checkAnswer,
   checkWrittenAnswer,
-  calculateScore 
-} from '@/lib/learnUtils';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Progress } from '@/components/ui/progress';
-import { Skeleton } from '@/components/ui/skeleton';
+  calculateScore,
+} from "@/lib/learnUtils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Card as UICard,
   CardContent,
@@ -31,8 +41,8 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 interface PageProps {
   params: Promise<{ deckId: string }>;
@@ -46,28 +56,30 @@ export default function LearnModePage({ params }: PageProps) {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<AnswerResult[]>([]);
-  
+
   // For MCQ
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
-  
+
   // For WRITTEN
-  const [userInput, setUserInput] = useState('');
+  const [userInput, setUserInput] = useState("");
   const [showFeedback, setShowFeedback] = useState(false);
   const [isCorrectAnswer, setIsCorrectAnswer] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  
+
   const [isLoading, setIsLoading] = useState(true);
   const [hasStarted, setHasStarted] = useState(false);
-  const [selectedMode, setSelectedMode] = useState<'MCQ' | 'WRITTEN' | 'MIXED' | null>(null);
+  const [selectedMode, setSelectedMode] = useState<
+    "MCQ" | "WRITTEN" | "MIXED" | null
+  >(null);
   const [isComplete, setIsComplete] = useState(false);
-  
+
   // TTS Hook
   const { speak } = useTTS();
 
   useEffect(() => {
     const initPage = async () => {
       if (!isAuthenticated()) {
-        router.push('/login');
+        router.push("/login");
         return;
       }
 
@@ -86,7 +98,11 @@ export default function LearnModePage({ params }: PageProps) {
 
   // Auto-focus khi chuyển câu trong WRITTEN mode
   useEffect(() => {
-    if (hasStarted && questions[currentIndex]?.type === 'WRITTEN' && !showFeedback) {
+    if (
+      hasStarted &&
+      questions[currentIndex]?.type === "WRITTEN" &&
+      !showFeedback
+    ) {
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [currentIndex, hasStarted, showFeedback, questions]);
@@ -100,14 +116,14 @@ export default function LearnModePage({ params }: PageProps) {
       const fetchedCards = response.data as Card[];
 
       if (fetchedCards.length === 0) {
-        toast.error('Bộ thẻ này chưa có thẻ nào!');
+        toast.error("Bộ thẻ này chưa có thẻ nào!");
         router.push(`/decks/${deckId}`);
         return;
       }
 
       setCards(fetchedCards);
     } catch (error: any) {
-      const message = error.response?.data?.message || 'Không thể tải dữ liệu';
+      const message = error.response?.data?.message || "Không thể tải dữ liệu";
       toast.error(message);
       router.push(`/decks/${deckId}`);
     } finally {
@@ -115,17 +131,17 @@ export default function LearnModePage({ params }: PageProps) {
     }
   };
 
-  const startMode = (mode: 'MCQ' | 'WRITTEN' | 'MIXED') => {
+  const startMode = (mode: "MCQ" | "WRITTEN" | "MIXED") => {
     let generatedQuestions: Question[];
-    
-    if (mode === 'MCQ') {
+
+    if (mode === "MCQ") {
       generatedQuestions = generateMultipleChoiceQuestions(cards);
-    } else if (mode === 'WRITTEN') {
+    } else if (mode === "WRITTEN") {
       generatedQuestions = generateWrittenQuestions(cards);
     } else {
       generatedQuestions = generateMixedQuestions(cards);
     }
-    
+
     setQuestions(generatedQuestions);
     setSelectedMode(mode);
     setHasStarted(true);
@@ -139,7 +155,7 @@ export default function LearnModePage({ params }: PageProps) {
 
   const handleNextMCQ = () => {
     if (selectedOption === null) {
-      toast.error('Vui lòng chọn đáp án!');
+      toast.error("Vui lòng chọn đáp án!");
       return;
     }
 
@@ -149,15 +165,16 @@ export default function LearnModePage({ params }: PageProps) {
     const result: AnswerResult = {
       isCorrect,
       selectedIndex: selectedOption,
-      correctIndex: currentQuestion.type === 'MCQ' ? currentQuestion.correctIndex : -1,
+      correctIndex:
+        currentQuestion.type === "MCQ" ? currentQuestion.correctIndex : -1,
       question: currentQuestion,
     };
     setAnswers([...answers, result]);
 
     if (isCorrect) {
-      toast.success('Chính xác! 🎉');
+      toast.success("Chính xác! 🎉");
     } else {
-      toast.error('Sai rồi! Đáp án đúng: ' + currentQuestion.correctAnswer);
+      toast.error("Sai rồi! Đáp án đúng: " + currentQuestion.correctAnswer);
     }
 
     if (currentIndex < questions.length - 1) {
@@ -172,20 +189,23 @@ export default function LearnModePage({ params }: PageProps) {
   // Handler for WRITTEN
   const handleCheckWritten = () => {
     if (!userInput.trim()) {
-      toast.error('Vui lòng nhập đáp án!');
+      toast.error("Vui lòng nhập đáp án!");
       return;
     }
 
     const currentQuestion = questions[currentIndex];
-    const isCorrect = checkWrittenAnswer(userInput, currentQuestion.correctAnswer);
-    
+    const isCorrect = checkWrittenAnswer(
+      userInput,
+      currentQuestion.correctAnswer
+    );
+
     setIsCorrectAnswer(isCorrect);
     setShowFeedback(true);
   };
 
   const handleContinueWritten = () => {
     const currentQuestion = questions[currentIndex];
-    
+
     const result: AnswerResult = {
       isCorrect: isCorrectAnswer,
       selectedIndex: -1,
@@ -196,12 +216,12 @@ export default function LearnModePage({ params }: PageProps) {
     setAnswers([...answers, result]);
 
     if (isCorrectAnswer) {
-      toast.success('Chính xác! 🎉');
+      toast.success("Chính xác! 🎉");
     }
 
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(currentIndex + 1);
-      setUserInput('');
+      setUserInput("");
       setShowFeedback(false);
     } else {
       setIsComplete(true);
@@ -211,7 +231,7 @@ export default function LearnModePage({ params }: PageProps) {
 
   // Handle Enter key for WRITTEN mode
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       if (showFeedback) {
         handleContinueWritten();
       } else {
@@ -248,7 +268,7 @@ export default function LearnModePage({ params }: PageProps) {
     setCurrentIndex(0);
     setAnswers([]);
     setSelectedOption(null);
-    setUserInput('');
+    setUserInput("");
     setShowFeedback(false);
     setIsComplete(false);
     setHasStarted(false);
@@ -277,7 +297,11 @@ export default function LearnModePage({ params }: PageProps) {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
         <header className="border-b bg-white/80 backdrop-blur-sm">
           <div className="container mx-auto px-4 py-4">
-            <Button variant="ghost" size="sm" onClick={() => router.push(`/decks/${deckId}`)}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.push(`/decks/${deckId}`)}
+            >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Quay lại
             </Button>
@@ -294,7 +318,10 @@ export default function LearnModePage({ params }: PageProps) {
 
             <div className="grid md:grid-cols-3 gap-6">
               {/* MCQ Mode */}
-              <UICard className="cursor-pointer hover:shadow-xl transition-all hover:border-primary" onClick={() => startMode('MCQ')}>
+              <UICard
+                className="cursor-pointer hover:shadow-xl transition-all hover:border-primary"
+                onClick={() => startMode("MCQ")}
+              >
                 <CardHeader className="text-center">
                   <div className="flex justify-center mb-4">
                     <div className="p-4 bg-blue-100 dark:bg-blue-950 rounded-full">
@@ -312,12 +339,17 @@ export default function LearnModePage({ params }: PageProps) {
                   </ul>
                 </CardContent>
                 <CardFooter>
-                  <Button className="w-full" variant="outline">Bắt đầu</Button>
+                  <Button className="w-full" variant="outline">
+                    Bắt đầu
+                  </Button>
                 </CardFooter>
               </UICard>
 
               {/* WRITTEN Mode */}
-              <UICard className="cursor-pointer hover:shadow-xl transition-all hover:border-primary" onClick={() => startMode('WRITTEN')}>
+              <UICard
+                className="cursor-pointer hover:shadow-xl transition-all hover:border-primary"
+                onClick={() => startMode("WRITTEN")}
+              >
                 <CardHeader className="text-center">
                   <div className="flex justify-center mb-4">
                     <div className="p-4 bg-green-100 dark:bg-green-950 rounded-full">
@@ -335,12 +367,17 @@ export default function LearnModePage({ params }: PageProps) {
                   </ul>
                 </CardContent>
                 <CardFooter>
-                  <Button className="w-full" variant="outline">Bắt đầu</Button>
+                  <Button className="w-full" variant="outline">
+                    Bắt đầu
+                  </Button>
                 </CardFooter>
               </UICard>
 
               {/* MIXED Mode */}
-              <UICard className="cursor-pointer hover:shadow-xl transition-all hover:border-primary" onClick={() => startMode('MIXED')}>
+              <UICard
+                className="cursor-pointer hover:shadow-xl transition-all hover:border-primary"
+                onClick={() => startMode("MIXED")}
+              >
                 <CardHeader className="text-center">
                   <div className="flex justify-center mb-4">
                     <div className="p-4 bg-purple-100 dark:bg-purple-950 rounded-full">
@@ -358,7 +395,9 @@ export default function LearnModePage({ params }: PageProps) {
                   </ul>
                 </CardContent>
                 <CardFooter>
-                  <Button className="w-full" variant="outline">Bắt đầu</Button>
+                  <Button className="w-full" variant="outline">
+                    Bắt đầu
+                  </Button>
                 </CardFooter>
               </UICard>
             </div>
@@ -378,7 +417,11 @@ export default function LearnModePage({ params }: PageProps) {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
         <header className="border-b bg-white/80 backdrop-blur-sm">
           <div className="container mx-auto px-4 py-4">
-            <Button variant="ghost" size="sm" onClick={() => router.push(`/decks/${deckId}`)}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.push(`/decks/${deckId}`)}
+            >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Quay lại
             </Button>
@@ -419,7 +462,10 @@ export default function LearnModePage({ params }: PageProps) {
               </div>
             </CardContent>
             <CardFooter className="flex gap-2 justify-center">
-              <Button variant="outline" onClick={() => router.push(`/decks/${deckId}`)}>
+              <Button
+                variant="outline"
+                onClick={() => router.push(`/decks/${deckId}`)}
+              >
                 Về trang chủ
               </Button>
               <Button onClick={handleRestart}>
@@ -442,14 +488,18 @@ export default function LearnModePage({ params }: PageProps) {
       {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
-          <Button variant="ghost" size="sm" onClick={() => router.push(`/decks/${deckId}`)}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push(`/decks/${deckId}`)}
+          >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Quay lại
           </Button>
           <div className="mt-4">
             <div className="flex items-center justify-between mb-2">
               <h1 className="text-2xl font-bold">
-                {currentQuestion.type === 'MCQ' ? 'Trắc nghiệm' : 'Gõ phím'}
+                {currentQuestion.type === "MCQ" ? "Trắc nghiệm" : "Gõ phím"}
               </h1>
               <Badge variant="secondary">
                 {currentIndex + 1} / {questions.length}
@@ -475,16 +525,16 @@ export default function LearnModePage({ params }: PageProps) {
                 />
               </div>
             )}
-            
+
             <div className="flex items-start justify-center gap-3">
-              <div 
+              <div
                 className="text-2xl text-center font-semibold leading-none tracking-tight prose prose-lg max-w-none flex-1"
                 dangerouslySetInnerHTML={{ __html: currentQuestion.question }}
               />
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => speak(currentQuestion.question, 'en-US')}
+                onClick={() => speak(currentQuestion.question, "en-US")}
                 className="flex-shrink-0 hover:bg-primary/10 hover:text-primary transition-all"
                 title="Nghe phát âm"
               >
@@ -493,13 +543,16 @@ export default function LearnModePage({ params }: PageProps) {
             </div>
             {currentQuestion.example && (
               <div className="text-sm text-muted-foreground text-center italic mt-2 prose prose-sm max-w-none mx-auto">
-                Ví dụ: <span dangerouslySetInnerHTML={{ __html: currentQuestion.example }} />
+                Ví dụ:{" "}
+                <span
+                  dangerouslySetInnerHTML={{ __html: currentQuestion.example }}
+                />
               </div>
             )}
           </CardHeader>
 
           {/* MCQ Content */}
-          {currentQuestion.type === 'MCQ' && (
+          {currentQuestion.type === "MCQ" && (
             <>
               <CardContent className="space-y-3">
                 {currentQuestion.options.map((option, index) => {
@@ -507,16 +560,19 @@ export default function LearnModePage({ params }: PageProps) {
                   const isCorrect = index === currentQuestion.correctIndex;
                   const showResult = selectedOption !== null;
 
-                  let buttonClass = 'justify-start text-left h-auto py-4 px-6 text-base';
-                  
+                  let buttonClass =
+                    "justify-start text-left h-auto py-4 px-6 text-base";
+
                   if (showResult) {
                     if (isCorrect) {
-                      buttonClass += ' bg-green-100 dark:bg-green-950 border-green-500 hover:bg-green-100 dark:hover:bg-green-950';
+                      buttonClass +=
+                        " bg-green-100 dark:bg-green-950 border-green-500 hover:bg-green-100 dark:hover:bg-green-950";
                     } else if (isSelected) {
-                      buttonClass += ' bg-red-100 dark:bg-red-950 border-red-500 hover:bg-red-100 dark:hover:bg-red-950';
+                      buttonClass +=
+                        " bg-red-100 dark:bg-red-950 border-red-500 hover:bg-red-100 dark:hover:bg-red-950";
                     }
                   } else if (isSelected) {
-                    buttonClass += ' border-primary bg-primary/5';
+                    buttonClass += " border-primary bg-primary/5";
                   }
 
                   return (
@@ -530,9 +586,7 @@ export default function LearnModePage({ params }: PageProps) {
                       <span className="font-semibold mr-3">
                         {String.fromCharCode(65 + index)}.
                       </span>
-                      <span className="flex-1">
-                        {stripHtml(option)}
-                      </span>
+                      <span className="flex-1">{stripHtml(option)}</span>
                       {showResult && isCorrect && (
                         <CheckCircle2 className="h-5 w-5 text-green-600 ml-2" />
                       )}
@@ -544,19 +598,21 @@ export default function LearnModePage({ params }: PageProps) {
                 })}
               </CardContent>
               <CardFooter>
-                <Button 
-                  className="w-full" 
+                <Button
+                  className="w-full"
                   onClick={handleNextMCQ}
                   disabled={selectedOption === null}
                 >
-                  {currentIndex < questions.length - 1 ? 'Câu tiếp theo' : 'Hoàn thành'}
+                  {currentIndex < questions.length - 1
+                    ? "Câu tiếp theo"
+                    : "Hoàn thành"}
                 </Button>
               </CardFooter>
             </>
           )}
 
           {/* WRITTEN Content */}
-          {currentQuestion.type === 'WRITTEN' && (
+          {currentQuestion.type === "WRITTEN" && (
             <>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
@@ -577,11 +633,13 @@ export default function LearnModePage({ params }: PageProps) {
 
                 {/* Feedback khi đã check */}
                 {showFeedback && (
-                  <div className={`p-4 rounded-lg border-2 ${
-                    isCorrectAnswer 
-                      ? 'bg-green-50 dark:bg-green-950 border-green-500' 
-                      : 'bg-red-50 dark:bg-red-950 border-red-500'
-                  }`}>
+                  <div
+                    className={`p-4 rounded-lg border-2 ${
+                      isCorrectAnswer
+                        ? "bg-green-50 dark:bg-green-950 border-green-500"
+                        : "bg-red-50 dark:bg-red-950 border-red-500"
+                    }`}
+                  >
                     {isCorrectAnswer ? (
                       <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
                         <CheckCircle2 className="h-6 w-6" />
@@ -598,11 +656,17 @@ export default function LearnModePage({ params }: PageProps) {
                         </div>
                         <div className="space-y-2">
                           <div>
-                            <p className="text-xs text-muted-foreground mb-1">Bạn trả lời:</p>
-                            <p className="font-medium text-red-700 dark:text-red-300">{userInput}</p>
+                            <p className="text-xs text-muted-foreground mb-1">
+                              Bạn trả lời:
+                            </p>
+                            <p className="font-medium text-red-700 dark:text-red-300">
+                              {userInput}
+                            </p>
                           </div>
                           <div>
-                            <p className="text-xs text-muted-foreground mb-1">Đáp án đúng:</p>
+                            <p className="text-xs text-muted-foreground mb-1">
+                              Đáp án đúng:
+                            </p>
                             <p className="font-medium text-green-700 dark:text-green-300">
                               {stripHtml(currentQuestion.correctAnswer)}
                             </p>
@@ -615,19 +679,18 @@ export default function LearnModePage({ params }: PageProps) {
               </CardContent>
               <CardFooter>
                 {!showFeedback ? (
-                  <Button 
-                    className="w-full" 
+                  <Button
+                    className="w-full"
                     onClick={handleCheckWritten}
                     disabled={!userInput.trim()}
                   >
                     Kiểm tra
                   </Button>
                 ) : (
-                  <Button 
-                    className="w-full" 
-                    onClick={handleContinueWritten}
-                  >
-                    {currentIndex < questions.length - 1 ? 'Câu tiếp theo' : 'Hoàn thành'}
+                  <Button className="w-full" onClick={handleContinueWritten}>
+                    {currentIndex < questions.length - 1
+                      ? "Câu tiếp theo"
+                      : "Hoàn thành"}
                   </Button>
                 )}
               </CardFooter>

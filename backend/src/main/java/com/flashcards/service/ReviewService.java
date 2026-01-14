@@ -227,12 +227,13 @@ public class ReviewService {
                 .userId(userId)
                 .cardId(cardId)
                 .grade(grade)
+                .action("REVIEW") // Statistics tracking
                 .timeTakenMs(null) // Can be set by caller if available
                 .reviewedAt(reviewTime)
                 .build();
 
         studyLogRepository.save(log);
-        this.log.debug("Saved study log: userId={}, cardId={}, grade={}", userId, cardId, grade);
+        this.log.debug("Saved study log: userId={}, cardId={}, grade={}, action=REVIEW", userId, cardId, grade);
     }
 
     /**

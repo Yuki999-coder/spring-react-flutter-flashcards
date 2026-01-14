@@ -1,13 +1,17 @@
 package com.flashcards.controller;
 
 import com.flashcards.dto.request.ReviewRequest;
+import com.flashcards.dto.response.CardResponse;
 import com.flashcards.dto.response.ReviewResponse;
 import com.flashcards.exception.UnauthorizedException;
+import com.flashcards.model.entity.Card;
 import com.flashcards.model.entity.CardProgress;
 import com.flashcards.model.entity.User;
 import com.flashcards.repository.CardProgressRepository;
+import com.flashcards.repository.CardRepository;
 import com.flashcards.repository.UserRepository;
 import com.flashcards.security.CustomUserDetailsService;
+import com.flashcards.service.CardService;
 import com.flashcards.service.ReviewService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +38,9 @@ import java.util.stream.Collectors;
 public class ReviewController {
 
     private final ReviewService reviewService;
+    private final CardService cardService;
     private final CardProgressRepository cardProgressRepository;
+    private final UserRepository userRepository;
     private final CustomUserDetailsService userDetailsService;
 
     /**
@@ -176,6 +182,29 @@ public class ReviewController {
      * Convert CardProgress entity to ReviewResponse DTO
      */
     private ReviewResponse toReviewResponse(CardProgress progress) {
+        CardResponse cardResponse = null;
+        
+        try {
+            // Get user from progress or load by ID
+            User user = progress.getUser();
+            if (user == null) {
+                user = userRepository.findById(progress.getUserId())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            }
+            
+            // Fetch card details
+            cardResponse = cardService.getCardById(user, progress.getCardId());
+        } catch (Exception e) {
+            log.error("Failed to fetch card {} for progress {}: {}", 
+                progress.getCardId(), progress.getId(), e.getMessage());
+            // Create minimal card response if fetch fails
+            cardResponse = CardResponse.builder()
+                .id(progress.getCardId())
+                .term("Card not found")
+                .definition("This card may have been deleted")
+                .build();
+        }
+        
         return ReviewResponse.builder()
                 .id(progress.getId())
                 .userId(progress.getUserId())
@@ -187,6 +216,7 @@ public class ReviewController {
                 .repetitions(progress.getRepetitions())
                 .createdAt(progress.getCreatedAt())
                 .updatedAt(progress.getUpdatedAt())
+                .card(cardResponse)
                 .build();
     }
 

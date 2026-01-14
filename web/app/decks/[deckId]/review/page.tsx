@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { ArrowLeft, Trophy } from 'lucide-react';
-import { toast } from 'sonner';
-import confetti from 'canvas-confetti';
-import { api } from '@/lib/axios';
-import { useAuthStore } from '@/store/useAuthStore';
-import { Card } from '@/types/card';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Flashcard } from '@/components/Flashcard';
-import { ReviewControls } from '@/components/ReviewControls';
+import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, Trophy } from "lucide-react";
+import { toast } from "sonner";
+import confetti from "canvas-confetti";
+import { api } from "@/lib/axios";
+import { useAuthStore } from "@/store/useAuthStore";
+import { Card } from "@/types/card";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Flashcard } from "@/components/Flashcard";
+import { ReviewControls } from "@/components/ReviewControls";
 
 interface PageProps {
   params: Promise<{ deckId: string }>;
@@ -33,7 +33,7 @@ export default function ReviewPage({ params }: PageProps) {
   useEffect(() => {
     const initPage = async () => {
       if (!isAuthenticated()) {
-        router.push('/login');
+        router.push("/login");
         return;
       }
 
@@ -59,7 +59,7 @@ export default function ReviewPage({ params }: PageProps) {
       const cards: Card[] = response.data;
 
       // Debug: Xem dữ liệu thật từ API
-      console.log('Dữ liệu gốc từ API:', cards);
+      console.log("Dữ liệu gốc từ API:", cards);
 
       // Filter due cards
       const now = new Date();
@@ -69,7 +69,7 @@ export default function ReviewPage({ params }: PageProps) {
         if (!card.learningState) return true;
 
         // TRƯỜNG HỢP 2: Thẻ có trạng thái rõ ràng là NEW
-        if (card.learningState === 'NEW') return true;
+        if (card.learningState === "NEW") return true;
 
         // TRƯỜNG HỢP 3: Thẻ đã học và đến hạn ôn tập (nextReview <= Hiện tại)
         if (card.nextReview) {
@@ -83,24 +83,24 @@ export default function ReviewPage({ params }: PageProps) {
 
       // Sort: NEW cards first, then by nextReview
       const sorted = due.sort((a, b) => {
-        const aIsNew = !a.learningState || a.learningState === 'NEW';
-        const bIsNew = !b.learningState || b.learningState === 'NEW';
-        
+        const aIsNew = !a.learningState || a.learningState === "NEW";
+        const bIsNew = !b.learningState || b.learningState === "NEW";
+
         if (aIsNew && !bIsNew) return -1;
         if (!aIsNew && bIsNew) return 1;
         return 0;
       });
 
-      console.log('Số thẻ cần học sau khi lọc:', sorted.length);
+      console.log("Số thẻ cần học sau khi lọc:", sorted.length);
 
       setAllCards(cards);
       setDueCards(sorted);
 
       if (sorted.length === 0) {
-        toast.info('Không có thẻ nào cần ôn tập!');
+        toast.info("Không có thẻ nào cần ôn tập!");
       }
     } catch (error: any) {
-      const message = error.response?.data?.message || 'Không thể tải thẻ';
+      const message = error.response?.data?.message || "Không thể tải thẻ";
       toast.error(message);
       router.push(`/decks/${deckId}`);
     } finally {
@@ -112,7 +112,7 @@ export default function ReviewPage({ params }: PageProps) {
     setIsFlipped((prev) => !prev);
   }, []);
 
-  const handleReview = async (grade: 'AGAIN' | 'HARD' | 'GOOD' | 'EASY') => {
+  const handleReview = async (grade: "AGAIN" | "HARD" | "GOOD" | "EASY") => {
     const currentCard = dueCards[currentIndex];
     if (!currentCard) return;
 
@@ -130,13 +130,13 @@ export default function ReviewPage({ params }: PageProps) {
       if (newDueCards.length === 0 && !hasShownConfetti) {
         setHasShownConfetti(true);
         triggerConfetti();
-        toast.success('🎉 Chúc mừng! Bạn đã hoàn thành bài học!');
+        toast.success("🎉 Chúc mừng! Bạn đã hoàn thành bài học!");
       } else if (currentIndex >= newDueCards.length && newDueCards.length > 0) {
         // If we're past the end, go back to last card
         setCurrentIndex(newDueCards.length - 1);
       }
     } catch (error: any) {
-      const message = error.response?.data?.message || 'Không thể lưu kết quả';
+      const message = error.response?.data?.message || "Không thể lưu kết quả";
       toast.error(message);
     } finally {
       setIsReviewing(false);
@@ -153,14 +153,14 @@ export default function ReviewPage({ params }: PageProps) {
         angle: 60,
         spread: 55,
         origin: { x: 0 },
-        colors: ['#3b82f6', '#8b5cf6', '#ec4899'],
+        colors: ["#3b82f6", "#8b5cf6", "#ec4899"],
       });
       confetti({
         particleCount: 3,
         angle: 120,
         spread: 55,
         origin: { x: 1 },
-        colors: ['#3b82f6', '#8b5cf6', '#ec4899'],
+        colors: ["#3b82f6", "#8b5cf6", "#ec4899"],
       });
 
       if (Date.now() < end) {
@@ -176,27 +176,27 @@ export default function ReviewPage({ params }: PageProps) {
       if (isLoading || isReviewing || dueCards.length === 0) return;
 
       switch (e.key) {
-        case ' ':
+        case " ":
           e.preventDefault();
           handleFlip();
           break;
-        case '1':
-          if (isFlipped) handleReview('AGAIN');
+        case "1":
+          if (isFlipped) handleReview("AGAIN");
           break;
-        case '2':
-          if (isFlipped) handleReview('HARD');
+        case "2":
+          if (isFlipped) handleReview("HARD");
           break;
-        case '3':
-          if (isFlipped) handleReview('GOOD');
+        case "3":
+          if (isFlipped) handleReview("GOOD");
           break;
-        case '4':
-          if (isFlipped) handleReview('EASY');
+        case "4":
+          if (isFlipped) handleReview("EASY");
           break;
       }
     };
 
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
   }, [isFlipped, isLoading, isReviewing, dueCards.length, currentIndex]);
 
   const currentCard = dueCards[currentIndex];

@@ -1,23 +1,30 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { ArrowLeft, BookOpen, Brain, Plus, Grid3x3 } from 'lucide-react';
-import { toast } from 'sonner';
-import { api } from '@/lib/axios';
-import { useAuthStore } from '@/store/useAuthStore';
-import { Deck } from '@/types/deck';
-import { Card } from '@/types/card';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  ArrowLeft,
+  BookOpen,
+  Brain,
+  Plus,
+  Grid3x3,
+  ClipboardList,
+} from "lucide-react";
+import { toast } from "sonner";
+import { api } from "@/lib/axios";
+import { useAuthStore } from "@/store/useAuthStore";
+import { Deck } from "@/types/deck";
+import { Card } from "@/types/card";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { CardList } from '@/components/CardList';
-import { AddCardDialog } from '@/components/AddCardDialog';
+} from "@/components/ui/tooltip";
+import { CardList } from "@/components/CardList";
+import { AddCardDialog } from "@/components/AddCardDialog";
 
 interface PageProps {
   params: Promise<{ deckId: string }>;
@@ -34,7 +41,7 @@ export default function DeckDetailPage({ params }: PageProps) {
   useEffect(() => {
     const initPage = async () => {
       if (!isAuthenticated()) {
-        router.push('/login');
+        router.push("/login");
         return;
       }
 
@@ -65,11 +72,11 @@ export default function DeckDetailPage({ params }: PageProps) {
       setCards(cardsResponse.data);
     } catch (error: any) {
       if (error.response?.status === 404) {
-        toast.error('Không tìm thấy bộ thẻ');
-        router.push('/');
+        toast.error("Không tìm thấy bộ thẻ");
+        router.push("/");
       } else {
         const message =
-          error.response?.data?.message || 'Không thể tải dữ liệu';
+          error.response?.data?.message || "Không thể tải dữ liệu";
         toast.error(message);
       }
     } finally {
@@ -92,6 +99,11 @@ export default function DeckDetailPage({ params }: PageProps) {
     router.push(`/decks/${deckId}/match`);
   };
 
+  const handleTest = () => {
+    if (!deck || cards.length === 0) return;
+    router.push(`/decks/${deckId}/test`);
+  };
+
   if (!deckId) {
     return null;
   }
@@ -105,7 +117,7 @@ export default function DeckDetailPage({ params }: PageProps) {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => router.push('/')}
+              onClick={() => router.push("/")}
               className="mb-2"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
@@ -142,8 +154,13 @@ export default function DeckDetailPage({ params }: PageProps) {
               </p>
             </div>
             <div className="flex gap-2">
-              {deckId && <AddCardDialog deckId={parseInt(deckId)} onCardAdded={fetchData} />}
-              
+              {deckId && (
+                <AddCardDialog
+                  deckId={parseInt(deckId)}
+                  onCardAdded={fetchData}
+                />
+              )}
+
               {deckId && (
                 <Button
                   variant="outline"
@@ -153,7 +170,7 @@ export default function DeckDetailPage({ params }: PageProps) {
                   Thêm hàng loạt
                 </Button>
               )}
-              
+
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span>
@@ -198,6 +215,26 @@ export default function DeckDetailPage({ params }: PageProps) {
                 <TooltipTrigger asChild>
                   <span>
                     <Button
+                      onClick={handleTest}
+                      disabled={cards.length === 0}
+                      variant="outline"
+                    >
+                      <ClipboardList className="mr-2 h-4 w-4" />
+                      Test
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                {cards.length === 0 && (
+                  <TooltipContent>
+                    <p>Cần có ít nhất 1 thẻ để làm bài kiểm tra</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <Button
                       onClick={handleStudy}
                       disabled={cards.length === 0}
                       variant="default"
@@ -216,8 +253,8 @@ export default function DeckDetailPage({ params }: PageProps) {
             </div>
           </div>
 
-          <CardList 
-            cards={cards} 
+          <CardList
+            cards={cards}
             isLoading={isLoading}
             onCardDeleted={fetchData}
             onCardUpdated={fetchData}

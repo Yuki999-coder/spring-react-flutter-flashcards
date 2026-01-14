@@ -1,30 +1,41 @@
-'use client';
+"use client";
 
-import { useState, useRef, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useForm, useFieldArray, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { toast } from 'sonner';
-import { Plus, Trash2, Upload, ArrowLeft, Save, Loader2, Image as ImageIcon } from 'lucide-react';
-import { api } from '@/lib/axios';
-import { uploadImageToCloudinary } from '@/lib/cloudinary';
-import { RichTextEditor, RichTextEditorRef } from '@/components/ui/rich-text-editor';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { cn } from '@/lib/utils';
+import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useForm, useFieldArray, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { toast } from "sonner";
+import {
+  Plus,
+  Trash2,
+  Upload,
+  ArrowLeft,
+  Save,
+  Loader2,
+  Image as ImageIcon,
+} from "lucide-react";
+import { api } from "@/lib/axios";
+import { uploadImageToCloudinary } from "@/lib/cloudinary";
+import {
+  RichTextEditor,
+  RichTextEditorRef,
+} from "@/components/ui/rich-text-editor";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
 
 const cardSchema = z.object({
-  term: z.string().min(1, 'Term không được để trống'),
-  definition: z.string().min(1, 'Definition không được để trống'),
+  term: z.string().min(1, "Term không được để trống"),
+  definition: z.string().min(1, "Definition không được để trống"),
   example: z.string().optional(),
   imageUrl: z.string().optional(),
 });
 
 const bulkCardsSchema = z.object({
-  cards: z.array(cardSchema).min(1, 'Phải có ít nhất 1 thẻ'),
+  cards: z.array(cardSchema).min(1, "Phải có ít nhất 1 thẻ"),
 });
 
 type BulkCardsForm = z.infer<typeof bulkCardsSchema>;
@@ -37,7 +48,9 @@ interface BulkAddCardsProps {
 export function BulkAddCards({ deckId, onSuccess }: BulkAddCardsProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [uploadingIndexes, setUploadingIndexes] = useState<Set<number>>(new Set());
+  const [uploadingIndexes, setUploadingIndexes] = useState<Set<number>>(
+    new Set()
+  );
   const termRefs = useRef<(RichTextEditorRef | null)[]>([]);
 
   const {
@@ -50,28 +63,28 @@ export function BulkAddCards({ deckId, onSuccess }: BulkAddCardsProps) {
     resolver: zodResolver(bulkCardsSchema),
     defaultValues: {
       cards: [
-        { term: '', definition: '', example: '', imageUrl: '' },
-        { term: '', definition: '', example: '', imageUrl: '' },
-        { term: '', definition: '', example: '', imageUrl: '' },
+        { term: "", definition: "", example: "", imageUrl: "" },
+        { term: "", definition: "", example: "", imageUrl: "" },
+        { term: "", definition: "", example: "", imageUrl: "" },
       ],
     },
   });
 
   const { fields, append, remove } = useFieldArray({
     control,
-    name: 'cards',
+    name: "cards",
   });
 
-  const cards = watch('cards');
+  const cards = watch("cards");
 
   const handleImageUpload = async (index: number, file: File) => {
-    if (!file.type.startsWith('image/')) {
-      toast.error('Vui lòng chọn file ảnh');
+    if (!file.type.startsWith("image/")) {
+      toast.error("Vui lòng chọn file ảnh");
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('Kích thước ảnh phải nhỏ hơn 5MB');
+      toast.error("Kích thước ảnh phải nhỏ hơn 5MB");
       return;
     }
 
@@ -80,9 +93,9 @@ export function BulkAddCards({ deckId, onSuccess }: BulkAddCardsProps) {
     try {
       const imageUrl = await uploadImageToCloudinary(file);
       setValue(`cards.${index}.imageUrl`, imageUrl);
-      toast.success('Tải ảnh lên thành công!');
+      toast.success("Tải ảnh lên thành công!");
     } catch (error: any) {
-      toast.error(error.message || 'Không thể tải ảnh lên');
+      toast.error(error.message || "Không thể tải ảnh lên");
     } finally {
       setUploadingIndexes((prev) => {
         const newSet = new Set(prev);
@@ -95,8 +108,8 @@ export function BulkAddCards({ deckId, onSuccess }: BulkAddCardsProps) {
   const onSubmit = async (data: BulkCardsForm) => {
     // Helper function to clean HTML and check if it has actual content
     const hasContent = (html: string): boolean => {
-      const text = html.replace(/<[^>]*>/g, '').trim();
-      return text !== '';
+      const text = html.replace(/<[^>]*>/g, "").trim();
+      return text !== "";
     };
 
     // Filter and clean cards
@@ -105,11 +118,11 @@ export function BulkAddCards({ deckId, onSuccess }: BulkAddCardsProps) {
       .map((card) => ({
         ...card,
         // If example is empty HTML, set to empty string
-        example: hasContent(card.example || '') ? card.example : '',
+        example: hasContent(card.example || "") ? card.example : "",
       }));
 
     if (validCards.length === 0) {
-      toast.error('Phải có ít nhất 1 thẻ có nội dung');
+      toast.error("Phải có ít nhất 1 thẻ có nội dung");
       return;
     }
 
@@ -118,14 +131,14 @@ export function BulkAddCards({ deckId, onSuccess }: BulkAddCardsProps) {
     try {
       await api.post(`/decks/${deckId}/cards/bulk`, validCards);
       toast.success(`Đã thêm ${validCards.length} thẻ thành công! 🎉`);
-      
+
       if (onSuccess) {
         onSuccess();
       } else {
         router.push(`/decks/${deckId}`);
       }
     } catch (error: any) {
-      const message = error.response?.data?.message || 'Không thể thêm thẻ';
+      const message = error.response?.data?.message || "Không thể thêm thẻ";
       toast.error(message);
     } finally {
       setIsSubmitting(false);
@@ -133,34 +146,34 @@ export function BulkAddCards({ deckId, onSuccess }: BulkAddCardsProps) {
   };
 
   const addCard = () => {
-    append({ term: '', definition: '', example: '', imageUrl: '' });
-    
+    append({ term: "", definition: "", example: "", imageUrl: "" });
+
     // Scroll to bottom after adding
     setTimeout(() => {
-      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+      window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
     }, 100);
   };
 
   const removeCard = (index: number) => {
     if (fields.length <= 1) {
-      toast.error('Phải có ít nhất 1 thẻ');
+      toast.error("Phải có ít nhất 1 thẻ");
       return;
     }
     remove(index);
-    toast.success('Đã xóa thẻ');
+    toast.success("Đã xóa thẻ");
   };
 
   // Keyboard shortcut: Ctrl+Enter to submit
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
         e.preventDefault();
         handleSubmit(onSubmit)();
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleSubmit, onSubmit]);
 
   return (
@@ -191,8 +204,12 @@ export function BulkAddCards({ deckId, onSuccess }: BulkAddCardsProps) {
           <Card className="bg-blue-50 border-blue-200">
             <CardContent className="pt-6">
               <p className="text-sm text-muted-foreground">
-                💡 <strong>Mẹo:</strong> Nhấn <kbd className="px-2 py-1 bg-white rounded border">Tab</kbd> để di chuyển giữa các ô.
-                Nhấn <kbd className="px-2 py-1 bg-white rounded border">Ctrl</kbd> + <kbd className="px-2 py-1 bg-white rounded border">Enter</kbd> để lưu nhanh.
+                💡 <strong>Mẹo:</strong> Nhấn{" "}
+                <kbd className="px-2 py-1 bg-white rounded border">Tab</kbd> để
+                di chuyển giữa các ô. Nhấn{" "}
+                <kbd className="px-2 py-1 bg-white rounded border">Ctrl</kbd> +{" "}
+                <kbd className="px-2 py-1 bg-white rounded border">Enter</kbd>{" "}
+                để lưu nhanh.
               </p>
             </CardContent>
           </Card>
@@ -203,8 +220,8 @@ export function BulkAddCards({ deckId, onSuccess }: BulkAddCardsProps) {
               <Card
                 key={field.id}
                 className={cn(
-                  'transition-all duration-300 hover:shadow-lg',
-                  errors.cards?.[index] && 'border-red-500'
+                  "transition-all duration-300 hover:shadow-lg",
+                  errors.cards?.[index] && "border-red-500"
                 )}
               >
                 <CardHeader className="pb-3">
@@ -313,7 +330,11 @@ export function BulkAddCards({ deckId, onSuccess }: BulkAddCardsProps) {
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() => document.getElementById(`image-upload-${index}`)?.click()}
+                        onClick={() =>
+                          document
+                            .getElementById(`image-upload-${index}`)
+                            ?.click()
+                        }
                         disabled={isSubmitting || uploadingIndexes.has(index)}
                       >
                         {uploadingIndexes.has(index) ? (
@@ -343,7 +364,9 @@ export function BulkAddCards({ deckId, onSuccess }: BulkAddCardsProps) {
                             variant="destructive"
                             size="sm"
                             className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={() => setValue(`cards.${index}.imageUrl`, '')}
+                            onClick={() =>
+                              setValue(`cards.${index}.imageUrl`, "")
+                            }
                           >
                             ×
                           </Button>
@@ -375,9 +398,7 @@ export function BulkAddCards({ deckId, onSuccess }: BulkAddCardsProps) {
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-20">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">
-              {fields.length} thẻ
-            </p>
+            <p className="text-sm text-muted-foreground">{fields.length} thẻ</p>
             <Button
               size="lg"
               onClick={handleSubmit(onSubmit)}

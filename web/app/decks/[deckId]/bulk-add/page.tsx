@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { Suspense, use } from 'react';
-import { BulkAddCards } from '@/components/BulkAddCards';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Suspense, use } from "react";
+import { BulkAddCards } from "@/components/BulkAddCards";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface PageProps {
   params: Promise<{ deckId: string }>;

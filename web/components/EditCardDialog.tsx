@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { useState, useRef } from 'react';
-import { toast } from 'sonner';
-import Image from 'next/image';
-import { Image as ImageIcon, X, Loader2 } from 'lucide-react';
-import { api } from '@/lib/axios';
-import { uploadImageToCloudinary, validateImageFile } from '@/lib/cloudinary';
-import { Card } from '@/types/card';
-import { Button } from '@/components/ui/button';
+import { useState, useRef } from "react";
+import { toast } from "sonner";
+import Image from "next/image";
+import { Image as ImageIcon, X, Loader2 } from "lucide-react";
+import { api } from "@/lib/axios";
+import { uploadImageToCloudinary, validateImageFile } from "@/lib/cloudinary";
+import { Card } from "@/types/card";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -15,9 +15,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { RichTextEditor } from '@/components/ui/rich-text-editor';
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 
 interface EditCardDialogProps {
   open: boolean;
@@ -26,17 +26,22 @@ interface EditCardDialogProps {
   onUpdated: () => void;
 }
 
-export function EditCardDialog({ open, onOpenChange, card, onUpdated }: EditCardDialogProps) {
+export function EditCardDialog({
+  open,
+  onOpenChange,
+  card,
+  onUpdated,
+}: EditCardDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [imageUrl, setImageUrl] = useState<string>(card.imageUrl || '');
+  const [imageUrl, setImageUrl] = useState<string>(card.imageUrl || "");
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   // Rich text editor content states
   const [term, setTerm] = useState<string>(card.term);
   const [definition, setDefinition] = useState<string>(card.definition);
-  const [example, setExample] = useState<string>(card.example || '');
-  
+  const [example, setExample] = useState<string>(card.example || "");
+
   // Validation errors
   const [errors, setErrors] = useState<{
     term?: string;
@@ -57,50 +62,50 @@ export function EditCardDialog({ open, onOpenChange, card, onUpdated }: EditCard
     try {
       const url = await uploadImageToCloudinary(file);
       setImageUrl(url);
-      toast.success('Upload ảnh thành công!');
+      toast.success("Upload ảnh thành công!");
     } catch (error: any) {
-      toast.error(error.message || 'Upload ảnh thất bại');
+      toast.error(error.message || "Upload ảnh thất bại");
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = "";
       }
     }
   };
 
   const handleRemoveImage = () => {
-    setImageUrl('');
+    setImageUrl("");
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
-  
+
   // Validate form
   const validateForm = (): boolean => {
     const newErrors: { term?: string; definition?: string } = {};
-    
+
     // Strip HTML tags to check if there's actual content
-    const stripHtml = (html: string) => html.replace(/<[^>]*>/g, '').trim();
-    
+    const stripHtml = (html: string) => html.replace(/<[^>]*>/g, "").trim();
+
     if (!stripHtml(term)) {
-      newErrors.term = 'Thuật ngữ không được để trống';
+      newErrors.term = "Thuật ngữ không được để trống";
     }
-    
+
     if (!stripHtml(definition)) {
-      newErrors.definition = 'Định nghĩa không được để trống';
+      newErrors.definition = "Định nghĩa không được để trống";
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
-    
+
     setIsLoading(true);
     try {
       await api.put(`/cards/${card.id}`, {
@@ -110,12 +115,13 @@ export function EditCardDialog({ open, onOpenChange, card, onUpdated }: EditCard
         imageUrl: imageUrl || undefined,
       });
 
-      toast.success('Cập nhật thẻ thành công!');
+      toast.success("Cập nhật thẻ thành công!");
       onOpenChange(false);
       onUpdated();
     } catch (error: any) {
       const message =
-        error.response?.data?.message || 'Không thể cập nhật thẻ. Vui lòng thử lại.';
+        error.response?.data?.message ||
+        "Không thể cập nhật thẻ. Vui lòng thử lại.";
       toast.error(message);
     } finally {
       setIsLoading(false);
@@ -157,9 +163,7 @@ export function EditCardDialog({ open, onOpenChange, card, onUpdated }: EditCard
                 placeholder="Nhập định nghĩa..."
               />
               {errors.definition && (
-                <p className="text-sm text-red-500">
-                  {errors.definition}
-                </p>
+                <p className="text-sm text-red-500">{errors.definition}</p>
               )}
             </div>
 
@@ -175,7 +179,7 @@ export function EditCardDialog({ open, onOpenChange, card, onUpdated }: EditCard
             {/* Image Upload Section */}
             <div className="grid gap-2">
               <Label>Hình ảnh (Tùy chọn)</Label>
-              
+
               {!imageUrl && (
                 <div>
                   <input
@@ -244,7 +248,7 @@ export function EditCardDialog({ open, onOpenChange, card, onUpdated }: EditCard
               Hủy
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Đang lưu...' : 'Lưu thay đổi'}
+              {isLoading ? "Đang lưu..." : "Lưu thay đổi"}
             </Button>
           </DialogFooter>
         </form>

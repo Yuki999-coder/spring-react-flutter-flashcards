@@ -8,6 +8,7 @@ com\flashcards\dto\ReviewRequest.class
 com\flashcards\dto\ReviewResponse$ReviewResponseBuilder.class
 com\flashcards\security\JwtAuthenticationFilter.class
 com\flashcards\validation\HtmlNotBlank.class
+com\flashcards\controller\StatisticsController.class
 com\flashcards\dto\request\CreateCardRequest.class
 com\flashcards\dto\request\LoginRequest.class
 com\flashcards\dto\response\ErrorResponse$ErrorResponseBuilder.class
@@ -44,6 +45,8 @@ com\flashcards\security\JwtUtils.class
 com\flashcards\dto\response\AuthResponse$AuthResponseBuilder.class
 com\flashcards\model\entity\User$UserBuilder.class
 com\flashcards\repository\DeckRepository.class
+com\flashcards\dto\statistics\StatisticsSummaryDTO$StatisticsSummaryDTOBuilder.class
+com\flashcards\service\StatisticsService.class
 com\flashcards\dto\response\CardResponse.class
 com\flashcards\config\OpenApiConfig.class
 com\flashcards\exception\GlobalExceptionHandler.class
@@ -56,6 +59,7 @@ com\flashcards\controller\ReviewController.class
 com\flashcards\exception\CardNotFoundException.class
 com\flashcards\dto\request\BulkCreateCardsRequest$BulkCreateCardsRequestBuilder.class
 com\flashcards\dto\response\AuthResponse.class
+com\flashcards\dto\statistics\StatisticsSummaryDTO$PieChartDataDTO$PieChartDataDTOBuilder.class
 com\flashcards\dto\request\LoginRequest$LoginRequestBuilder.class
 com\flashcards\dto\response\ErrorResponse.class
 com\flashcards\dto\request\UpdateCardRequest.class
@@ -63,6 +67,8 @@ com\flashcards\model\entity\CardProgress$CardProgressBuilder.class
 com\flashcards\dto\request\CreateDeckRequest.class
 com\flashcards\dto\response\ReviewResponse$ReviewResponseBuilder.class
 com\flashcards\repository\CardProgressRepository.class
+com\flashcards\dto\statistics\StatisticsSummaryDTO.class
 com\flashcards\dto\request\BulkCreateCardsRequest.class
 com\flashcards\dto\request\UpdateCardRequest$UpdateCardRequestBuilder.class
 com\flashcards\model\entity\CardProgress.class
+com\flashcards\dto\statistics\StatisticsSummaryDTO$PieChartDataDTO.class

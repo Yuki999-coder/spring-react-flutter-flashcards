@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { toast } from 'sonner';
-import { api } from '@/lib/axios';
-import { Card } from '@/types/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { useState } from "react";
+import { toast } from "sonner";
+import { api } from "@/lib/axios";
+import { Card } from "@/types/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -13,14 +13,14 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,9 +30,9 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { EditCardDialog } from '@/components/EditCardDialog';
-import { BookOpen, MoreHorizontal, Pencil, Trash } from 'lucide-react';
+} from "@/components/ui/alert-dialog";
+import { EditCardDialog } from "@/components/EditCardDialog";
+import { BookOpen, MoreHorizontal, Pencil, Trash } from "lucide-react";
 
 interface CardListProps {
   cards: Card[];
@@ -41,20 +41,25 @@ interface CardListProps {
   onCardUpdated?: () => void;
 }
 
-const getLearningStateBadge = (state: Card['learningState']) => {
+const getLearningStateBadge = (state: Card["learningState"]) => {
   const variants = {
-    NEW: { variant: 'secondary' as const, label: 'Mới' },
-    LEARNING_MCQ: { variant: 'info' as const, label: 'Đang học (MCQ)' },
-    LEARNING_TYPING: { variant: 'info' as const, label: 'Đang học (Gõ)' },
-    REVIEWING: { variant: 'success' as const, label: 'Ôn tập' },
-    RELEARNING: { variant: 'warning' as const, label: 'Học lại' },
+    NEW: { variant: "secondary" as const, label: "Mới" },
+    LEARNING_MCQ: { variant: "info" as const, label: "Đang học (MCQ)" },
+    LEARNING_TYPING: { variant: "info" as const, label: "Đang học (Gõ)" },
+    REVIEWING: { variant: "success" as const, label: "Ôn tập" },
+    RELEARNING: { variant: "warning" as const, label: "Học lại" },
   };
 
   const config = variants[state] || variants.NEW;
   return <Badge variant={config.variant}>{config.label}</Badge>;
 };
 
-export function CardList({ cards, isLoading, onCardDeleted, onCardUpdated }: CardListProps) {
+export function CardList({
+  cards,
+  isLoading,
+  onCardDeleted,
+  onCardUpdated,
+}: CardListProps) {
   const [editingCard, setEditingCard] = useState<Card | null>(null);
   const [deletingCard, setDeletingCard] = useState<Card | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -65,11 +70,12 @@ export function CardList({ cards, isLoading, onCardDeleted, onCardUpdated }: Car
     setIsDeleting(true);
     try {
       await api.delete(`/cards/${deletingCard.id}`);
-      toast.success('Đã xóa thẻ thành công!');
+      toast.success("Đã xóa thẻ thành công!");
       setDeletingCard(null);
       onCardDeleted?.();
     } catch (error: any) {
-      const message = error.response?.data?.message || 'Không thể xóa thẻ. Vui lòng thử lại.';
+      const message =
+        error.response?.data?.message || "Không thể xóa thẻ. Vui lòng thử lại.";
       toast.error(message);
     } finally {
       setIsDeleting(false);
@@ -155,26 +161,30 @@ export function CardList({ cards, isLoading, onCardDeleted, onCardUpdated }: Car
                   {index + 1}
                 </TableCell>
                 <TableCell className="font-medium">
-                  <div 
+                  <div
                     className="prose prose-sm max-w-none"
-                    dangerouslySetInnerHTML={{ __html: card.term }} 
+                    dangerouslySetInnerHTML={{ __html: card.term }}
                   />
                 </TableCell>
                 <TableCell>
-                  <div 
+                  <div
                     className="prose prose-sm max-w-none"
-                    dangerouslySetInnerHTML={{ __html: card.definition }} 
+                    dangerouslySetInnerHTML={{ __html: card.definition }}
                   />
                 </TableCell>
                 <TableCell className="text-muted-foreground">
                   {card.example ? (
-                    <div 
+                    <div
                       className="prose prose-sm max-w-none"
-                      dangerouslySetInnerHTML={{ __html: card.example }} 
+                      dangerouslySetInnerHTML={{ __html: card.example }}
                     />
-                  ) : '-'}
+                  ) : (
+                    "-"
+                  )}
                 </TableCell>
-                <TableCell>{getLearningStateBadge(card.learningState)}</TableCell>
+                <TableCell>
+                  {getLearningStateBadge(card.learningState)}
+                </TableCell>
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -216,12 +226,16 @@ export function CardList({ cards, isLoading, onCardDeleted, onCardUpdated }: Car
         />
       )}
 
-      <AlertDialog open={!!deletingCard} onOpenChange={(open) => !open && setDeletingCard(null)}>
+      <AlertDialog
+        open={!!deletingCard}
+        onOpenChange={(open) => !open && setDeletingCard(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Xác nhận xóa thẻ</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn có chắc chắn muốn xóa thẻ <strong>&quot;{deletingCard?.term}&quot;</strong>?
+              Bạn có chắc chắn muốn xóa thẻ{" "}
+              <strong>&quot;{deletingCard?.term}&quot;</strong>?
               <br />
               Hành động này không thể hoàn tác.
             </AlertDialogDescription>
@@ -233,7 +247,7 @@ export function CardList({ cards, isLoading, onCardDeleted, onCardUpdated }: Car
               disabled={isDeleting}
               className="bg-red-600 hover:bg-red-700"
             >
-              {isDeleting ? 'Đang xóa...' : 'Xóa'}
+              {isDeleting ? "Đang xóa..." : "Xóa"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

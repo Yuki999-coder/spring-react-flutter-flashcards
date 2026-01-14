@@ -1,21 +1,21 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { ArrowLeft, Trophy, RotateCcw, Timer } from 'lucide-react';
-import { toast } from 'sonner';
-import confetti from 'canvas-confetti';
-import { api } from '@/lib/axios';
-import { useAuthStore } from '@/store/useAuthStore';
-import { Card } from '@/types/card';
-import { Button } from '@/components/ui/button';
-import { Card as UICard, CardContent } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, Trophy, RotateCcw, Timer } from "lucide-react";
+import { toast } from "sonner";
+import confetti from "canvas-confetti";
+import { api } from "@/lib/axios";
+import { useAuthStore } from "@/store/useAuthStore";
+import { Card } from "@/types/card";
+import { Button } from "@/components/ui/button";
+import { Card as UICard, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface MatchPiece {
   id: string;
   cardId: number;
-  type: 'term' | 'definition';
+  type: "term" | "definition";
   content: string;
   imageUrl?: string;
 }
@@ -30,15 +30,17 @@ export default function MatchGamePage({ params }: PageProps) {
   const [deckId, setDeckId] = useState<string | null>(null);
   const [cards, setCards] = useState<Card[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Game state
   const [pieces, setPieces] = useState<MatchPiece[]>([]);
   const [selectedPieces, setSelectedPieces] = useState<string[]>([]);
-  const [matchedPieceIds, setMatchedPieceIds] = useState<Set<string>>(new Set());
+  const [matchedPieceIds, setMatchedPieceIds] = useState<Set<string>>(
+    new Set()
+  );
   const [wrongPieceIds, setWrongPieceIds] = useState<Set<string>>(new Set());
   const [isChecking, setIsChecking] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
-  
+
   // Timer
   const [timer, setTimer] = useState(0);
   const [timerRunning, setTimerRunning] = useState(false);
@@ -46,7 +48,7 @@ export default function MatchGamePage({ params }: PageProps) {
   useEffect(() => {
     const initPage = async () => {
       if (!isAuthenticated()) {
-        router.push('/login');
+        router.push("/login");
         return;
       }
 
@@ -81,7 +83,7 @@ export default function MatchGamePage({ params }: PageProps) {
       const fetchedCards = response.data;
 
       if (fetchedCards.length === 0) {
-        toast.error('Deck này chưa có thẻ nào');
+        toast.error("Deck này chưa có thẻ nào");
         router.push(`/decks/${deckId}`);
         return;
       }
@@ -89,7 +91,7 @@ export default function MatchGamePage({ params }: PageProps) {
       setCards(fetchedCards);
       initializeGame(fetchedCards);
     } catch (error: any) {
-      const message = error.response?.data?.message || 'Không thể tải thẻ';
+      const message = error.response?.data?.message || "Không thể tải thẻ";
       toast.error(message);
     } finally {
       setIsLoading(false);
@@ -103,13 +105,13 @@ export default function MatchGamePage({ params }: PageProps) {
 
     // Tạo các mảnh ghép
     const gamePieces: MatchPiece[] = [];
-    
+
     selectedCards.forEach((card) => {
       // Mảnh Term
       gamePieces.push({
         id: `term-${card.id}`,
         cardId: card.id,
-        type: 'term',
+        type: "term",
         content: card.term,
       });
 
@@ -117,7 +119,7 @@ export default function MatchGamePage({ params }: PageProps) {
       gamePieces.push({
         id: `def-${card.id}`,
         cardId: card.id,
-        type: 'definition',
+        type: "definition",
         content: card.definition,
         imageUrl: card.imageUrl,
       });
@@ -138,7 +140,11 @@ export default function MatchGamePage({ params }: PageProps) {
 
   const handlePieceClick = (pieceId: string) => {
     // Ignore if checking, already matched, or already selected
-    if (isChecking || matchedPieceIds.has(pieceId) || selectedPieces.includes(pieceId)) {
+    if (
+      isChecking ||
+      matchedPieceIds.has(pieceId) ||
+      selectedPieces.includes(pieceId)
+    ) {
       return;
     }
 
@@ -154,8 +160,8 @@ export default function MatchGamePage({ params }: PageProps) {
   const checkMatch = (pieceId1: string, pieceId2: string) => {
     setIsChecking(true);
 
-    const piece1 = pieces.find(p => p.id === pieceId1);
-    const piece2 = pieces.find(p => p.id === pieceId2);
+    const piece1 = pieces.find((p) => p.id === pieceId1);
+    const piece2 = pieces.find((p) => p.id === pieceId2);
 
     if (!piece1 || !piece2) return;
 
@@ -163,7 +169,7 @@ export default function MatchGamePage({ params }: PageProps) {
     if (piece1.cardId === piece2.cardId) {
       // Correct match!
       setTimeout(() => {
-        setMatchedPieceIds(prev => new Set([...prev, pieceId1, pieceId2]));
+        setMatchedPieceIds((prev) => new Set([...prev, pieceId1, pieceId2]));
         setSelectedPieces([]);
         setIsChecking(false);
 
@@ -176,7 +182,7 @@ export default function MatchGamePage({ params }: PageProps) {
     } else {
       // Wrong match!
       setWrongPieceIds(new Set([pieceId1, pieceId2]));
-      
+
       setTimeout(() => {
         setWrongPieceIds(new Set());
         setSelectedPieces([]);
@@ -188,7 +194,7 @@ export default function MatchGamePage({ params }: PageProps) {
   const handleGameComplete = () => {
     setTimerRunning(false);
     setIsComplete(true);
-    
+
     // Confetti animation
     const duration = 3000;
     const end = Date.now() + duration;
@@ -199,14 +205,14 @@ export default function MatchGamePage({ params }: PageProps) {
         angle: 60,
         spread: 55,
         origin: { x: 0 },
-        colors: ['#3b82f6', '#8b5cf6', '#ec4899'],
+        colors: ["#3b82f6", "#8b5cf6", "#ec4899"],
       });
       confetti({
         particleCount: 3,
         angle: 120,
         spread: 55,
         origin: { x: 1 },
-        colors: ['#3b82f6', '#8b5cf6', '#ec4899'],
+        colors: ["#3b82f6", "#8b5cf6", "#ec4899"],
       });
 
       if (Date.now() < end) {
@@ -215,13 +221,15 @@ export default function MatchGamePage({ params }: PageProps) {
     };
     frame();
 
-    toast.success('🎉 Chúc mừng! Bạn đã hoàn thành!');
+    toast.success("🎉 Chúc mừng! Bạn đã hoàn thành!");
   };
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${mins.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
   };
 
   const handleRestart = () => {
@@ -257,20 +265,16 @@ export default function MatchGamePage({ params }: PageProps) {
               <ArrowLeft className="mr-2 h-4 w-4" />
               Quay lại
             </Button>
-            
+
             <div className="flex items-center gap-6">
               {/* Timer */}
               <div className="flex items-center gap-2 text-lg font-semibold">
                 <Timer className="h-5 w-5 text-primary" />
                 <span className="font-mono">{formatTime(timer)}</span>
               </div>
-              
+
               {/* Restart Button */}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRestart}
-              >
+              <Button variant="outline" size="sm" onClick={handleRestart}>
                 <RotateCcw className="mr-2 h-4 w-4" />
                 Chơi lại
               </Button>
@@ -294,7 +298,9 @@ export default function MatchGamePage({ params }: PageProps) {
                   Bạn đã hoàn thành trò chơi!
                 </p>
                 <div className="bg-white/50 rounded-lg p-6 mb-8">
-                  <p className="text-sm text-muted-foreground mb-2">Thời gian hoàn thành</p>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Thời gian hoàn thành
+                  </p>
                   <p className="text-5xl font-bold text-primary font-mono">
                     {formatTime(timer)}
                   </p>
@@ -322,7 +328,7 @@ export default function MatchGamePage({ params }: PageProps) {
                 const isSelected = selectedPieces.includes(piece.id);
                 const isMatched = matchedPieceIds.has(piece.id);
                 const isWrong = wrongPieceIds.has(piece.id);
-                
+
                 if (isMatched) return null; // Hide matched pieces
 
                 return (
@@ -358,11 +364,12 @@ function MatchCard({ piece, isSelected, isWrong, onClick }: MatchCardProps) {
       className={`
         p-4 rounded-xl border-2 transition-all duration-200
         min-h-[120px] flex flex-col items-center justify-center
-        ${isSelected 
-          ? 'bg-blue-100 border-blue-500 scale-95' 
-          : isWrong
-          ? 'bg-red-100 border-red-500 animate-shake'
-          : 'bg-white border-gray-200 hover:border-primary hover:shadow-lg hover:scale-105'
+        ${
+          isSelected
+            ? "bg-blue-100 border-blue-500 scale-95"
+            : isWrong
+            ? "bg-red-100 border-red-500 animate-shake"
+            : "bg-white border-gray-200 hover:border-primary hover:shadow-lg hover:scale-105"
         }
       `}
     >
@@ -376,16 +383,16 @@ function MatchCard({ piece, isSelected, isWrong, onClick }: MatchCardProps) {
           />
         </div>
       )}
-      
+
       {/* Content */}
-      <div 
+      <div
         className="text-sm md:text-base font-medium text-center prose prose-sm max-w-none"
         dangerouslySetInnerHTML={{ __html: piece.content }}
       />
-      
+
       {/* Type indicator */}
       <div className="mt-2 text-xs text-muted-foreground">
-        {piece.type === 'term' ? '📝 Thuật ngữ' : '📖 Định nghĩa'}
+        {piece.type === "term" ? "📝 Thuật ngữ" : "📖 Định nghĩa"}
       </div>
     </button>
   );

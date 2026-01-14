@@ -27,4 +27,7 @@ public class ReviewResponse {
     private Integer repetitions;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    
+    // Card information for frontend display
+    private CardResponse card;
 }

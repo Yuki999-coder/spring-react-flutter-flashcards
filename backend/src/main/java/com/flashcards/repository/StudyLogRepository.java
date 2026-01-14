@@ -113,11 +113,32 @@ public interface StudyLogRepository extends JpaRepository<StudyLog, Long> {
      * @param startDate Start date to check streak
      * @return Count of distinct days with reviews
      */
-    @Query("SELECT COUNT(DISTINCT CAST(sl.reviewedAt AS DATE)) FROM StudyLog sl " +
+    @Query("SELECT COUNT(DISTINCT DATE(sl.reviewedAt)) FROM StudyLog sl " +
            "WHERE sl.userId = :userId " +
            "AND sl.reviewedAt >= :startDate")
     long countStudyDays(
         @Param("userId") Long userId,
         @Param("startDate") LocalDateTime startDate
     );
+    
+    /**
+     * Count total unique cards studied by user
+     * For statistics summary
+     */
+    @Query("SELECT COUNT(DISTINCT sl.cardId) FROM StudyLog sl WHERE sl.userId = :userId")
+    Long countDistinctCardsByUserId(@Param("userId") Long userId);
+    
+    /**
+     * Get study logs for heatmap (last N days)
+     * For statistics heatmap visualization
+     */
+    @Query("SELECT sl FROM StudyLog sl WHERE sl.userId = :userId AND sl.reviewedAt >= :startDate")
+    List<StudyLog> findByUserIdAndReviewedAtAfter(@Param("userId") Long userId, @Param("startDate") LocalDateTime startDate);
+    
+    /**
+     * Get all study logs for user (for streak calculation)
+     * Ordered by most recent first
+     */
+    @Query("SELECT sl FROM StudyLog sl WHERE sl.userId = :userId ORDER BY sl.reviewedAt DESC")
+    List<StudyLog> findAllByUserIdOrderByReviewedAtDesc(@Param("userId") Long userId);
 }
