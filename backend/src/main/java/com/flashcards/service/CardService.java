@@ -351,6 +351,55 @@ public class CardService {
     }
 
     /**
+     * Get difficult cards for cram mode
+     * Returns cards with easeFactor < 2.1 OR learningState = 'RELEARNING'
+     *
+     * @param user Authenticated user
+     * @param deckId Deck ID
+     * @return List of difficult cards
+     * @throws DeckNotFoundException if deck not found
+     * @throws UnauthorizedException if user doesn't own the deck
+     */
+    @Transactional(readOnly = true)
+    public List<CardResponse> getDifficultCards(User user, Long deckId) {
+        log.info("Getting difficult cards for deck {}: user={}", deckId, user.getId());
+
+        // Verify deck ownership
+        verifyDeckOwnership(user.getId(), deckId);
+
+        List<Card> difficultCards = cardRepository.findDifficultCardsByDeckIdAndUserId(deckId, user.getId());
+        
+        log.info("Found {} difficult cards in deck {}", difficultCards.size(), deckId);
+        
+        return difficultCards.stream()
+                .map(this::toCardResponse)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Count difficult cards in a deck
+     *
+     * @param user Authenticated user
+     * @param deckId Deck ID
+     * @return Count of difficult cards
+     * @throws DeckNotFoundException if deck not found
+     * @throws UnauthorizedException if user doesn't own the deck
+     */
+    @Transactional(readOnly = true)
+    public long countDifficultCards(User user, Long deckId) {
+        log.info("Counting difficult cards for deck {}: user={}", deckId, user.getId());
+
+        // Verify deck ownership
+        verifyDeckOwnership(user.getId(), deckId);
+
+        long count = cardRepository.countDifficultCardsByDeckIdAndUserId(deckId, user.getId());
+        
+        log.info("Deck {} has {} difficult cards", deckId, count);
+        
+        return count;
+    }
+
+    /**
      * Convert Card entity to CardResponse DTO
      */
     private CardResponse toCardResponse(Card card) {

@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import { ArrowLeft, Trophy } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { ArrowLeft, Trophy, Flame } from "lucide-react";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
 import { api } from "@/lib/axios";
@@ -19,6 +19,7 @@ interface PageProps {
 
 export default function ReviewPage({ params }: PageProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isAuthenticated } = useAuthStore();
   const [deckId, setDeckId] = useState<string | null>(null);
   const [allCards, setAllCards] = useState<Card[]>([]);
@@ -29,6 +30,7 @@ export default function ReviewPage({ params }: PageProps) {
   const [isReviewing, setIsReviewing] = useState(false);
   const [reviewedCount, setReviewedCount] = useState(0);
   const [hasShownConfetti, setHasShownConfetti] = useState(false);
+  const [isCramMode, setIsCramMode] = useState(false);
 
   useEffect(() => {
     const initPage = async () => {
@@ -39,10 +41,34 @@ export default function ReviewPage({ params }: PageProps) {
 
       const resolvedParams = await params;
       setDeckId(resolvedParams.deckId);
+      
+      // Check mode: difficult or wrongCards
+      const mode = searchParams.get("mode");
+      setIsCramMode(mode === "difficult" || mode === "wrongCards");
+      
+      // If wrongCards mode, load from sessionStorage
+      if (mode === "wrongCards") {
+        const storedCards = sessionStorage.getItem("cramCards");
+        if (storedCards) {
+          const wrongCards = JSON.parse(storedCards) as Card[];
+          setAllCards(wrongCards);
+          setDueCards(wrongCards);
+          setIsLoading(false);
+          
+          // Clear sessionStorage after loading
+          sessionStorage.removeItem("cramCards");
+          
+          if (wrongCards.length === 0) {
+            toast.info("Không có thẻ nào để học lại!");
+          }
+          
+          return; // Skip fetchCards
+        }
+      }
     };
 
     initPage();
-  }, [params, isAuthenticated, router]);
+  }, [params, isAuthenticated, router, searchParams]);
 
   useEffect(() => {
     if (deckId) {
@@ -55,49 +81,55 @@ export default function ReviewPage({ params }: PageProps) {
 
     setIsLoading(true);
     try {
-      const response = await api.get(`/decks/${deckId}/cards`);
+      // If cram mode, fetch difficult cards only
+      const endpoint = isCramMode 
+        ? `/decks/${deckId}/cards/difficult`
+        : `/decks/${deckId}/cards`;
+      
+      const response = await api.get(endpoint);
       const cards: Card[] = response.data;
 
-      // Debug: Xem dữ liệu thật từ API
-      console.log("Dữ liệu gốc từ API:", cards);
+      console.log(`${isCramMode ? 'Difficult' : 'All'} cards from API:`, cards);
 
-      // Filter due cards
-      const now = new Date();
-      const due = cards.filter((card) => {
-        // TRƯỜNG HỢP 1: Thẻ mới tinh (Backend chưa trả về learningState hoặc null)
-        // -> Mặc định cho học luôn
-        if (!card.learningState) return true;
-
-        // TRƯỜNG HỢP 2: Thẻ có trạng thái rõ ràng là NEW
-        if (card.learningState === "NEW") return true;
-
-        // TRƯỜNG HỢP 3: Thẻ đã học và đến hạn ôn tập (nextReview <= Hiện tại)
-        if (card.nextReview) {
-          const reviewDate = new Date(card.nextReview);
-          return reviewDate <= now;
+      if (isCramMode) {
+        // Cram mode: All fetched cards are difficult, show all
+        setAllCards(cards);
+        setDueCards(cards);
+        
+        if (cards.length === 0) {
+          toast.info("Không có thẻ khó nào để ôn tập!");
         }
+      } else {
+        // Normal mode: Filter due cards
+        const now = new Date();
+        const due = cards.filter((card) => {
+          if (!card.learningState) return true;
+          if (card.learningState === "NEW") return true;
+          if (card.nextReview) {
+            const reviewDate = new Date(card.nextReview);
+            return reviewDate <= now;
+          }
+          return false;
+        });
 
-        // Các trường hợp còn lại (thẻ đang chờ, chưa đến hạn) -> Ẩn đi
-        return false;
-      });
+        // Sort: NEW cards first, then by nextReview
+        const sorted = due.sort((a, b) => {
+          const aIsNew = !a.learningState || a.learningState === "NEW";
+          const bIsNew = !b.learningState || b.learningState === "NEW";
 
-      // Sort: NEW cards first, then by nextReview
-      const sorted = due.sort((a, b) => {
-        const aIsNew = !a.learningState || a.learningState === "NEW";
-        const bIsNew = !b.learningState || b.learningState === "NEW";
+          if (aIsNew && !bIsNew) return -1;
+          if (!aIsNew && bIsNew) return 1;
+          return 0;
+        });
 
-        if (aIsNew && !bIsNew) return -1;
-        if (!aIsNew && bIsNew) return 1;
-        return 0;
-      });
+        console.log("Due cards after filtering:", sorted.length);
 
-      console.log("Số thẻ cần học sau khi lọc:", sorted.length);
+        setAllCards(cards);
+        setDueCards(sorted);
 
-      setAllCards(cards);
-      setDueCards(sorted);
-
-      if (sorted.length === 0) {
-        toast.info("Không có thẻ nào cần ôn tập!");
+        if (sorted.length === 0) {
+          toast.info("Không có thẻ nào cần ôn tập!");
+        }
       }
     } catch (error: any) {
       const message = error.response?.data?.message || "Không thể tải thẻ";
@@ -207,6 +239,13 @@ export default function ReviewPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      {/* Cram Mode Badge */}
+      {isCramMode && (
+        <div className="fixed top-20 right-4 z-50 bg-orange-500 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2 animate-pulse">
+          <Flame className="h-4 w-4" />
+          <span className="font-semibold text-sm">Chế độ thẻ khó</span>
+        </div>
+      )}
       {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">

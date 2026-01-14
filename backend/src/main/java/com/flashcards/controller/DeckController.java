@@ -3,12 +3,14 @@ package com.flashcards.controller;
 import com.flashcards.dto.request.CreateDeckRequest;
 import com.flashcards.dto.request.ImportCardsRequest;
 import com.flashcards.dto.request.UpdateDeckRequest;
+import com.flashcards.dto.response.CardResponse;
 import com.flashcards.dto.response.DeckResponse;
 import com.flashcards.dto.response.ImportResultDTO;
 import com.flashcards.exception.UnauthorizedException;
 import com.flashcards.model.entity.User;
 import com.flashcards.repository.UserRepository;
 import com.flashcards.security.CustomUserDetailsService;
+import com.flashcards.service.CardService;
 import com.flashcards.service.DeckService;
 import com.flashcards.service.ImportExportService;
 import jakarta.validation.Valid;
@@ -36,6 +38,7 @@ import java.util.List;
 public class DeckController {
 
     private final DeckService deckService;
+    private final CardService cardService;
     private final ImportExportService importExportService;
     private final CustomUserDetailsService userDetailsService;
 
@@ -237,6 +240,49 @@ public class DeckController {
         return ResponseEntity.ok()
                 .headers(headers)
                 .body(text);
+    }
+
+    /**
+     * Get difficult cards for cram mode
+     * GET /api/v1/decks/{deckId}/cards/difficult
+     * Returns cards with easeFactor < 2.1 OR learningState = 'RELEARNING'
+     *
+     * @param userDetails Authenticated user from JWT token
+     * @param deckId Deck ID
+     * @return List of difficult cards
+     */
+    @GetMapping("/{deckId}/cards/difficult")
+    public ResponseEntity<List<CardResponse>> getDifficultCards(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long deckId) {
+        
+        User user = getCurrentUser(userDetails);
+        log.info("GET /api/v1/decks/{}/cards/difficult - userId: {}", deckId, user.getId());
+
+        List<CardResponse> difficultCards = cardService.getDifficultCards(user, deckId);
+
+        return ResponseEntity.ok(difficultCards);
+    }
+
+    /**
+     * Count difficult cards in a deck
+     * GET /api/v1/decks/{deckId}/cards/difficult/count
+     *
+     * @param userDetails Authenticated user from JWT token
+     * @param deckId Deck ID
+     * @return Count of difficult cards
+     */
+    @GetMapping("/{deckId}/cards/difficult/count")
+    public ResponseEntity<Long> countDifficultCards(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long deckId) {
+        
+        User user = getCurrentUser(userDetails);
+        log.info("GET /api/v1/decks/{}/cards/difficult/count - userId: {}", deckId, user.getId());
+
+        long count = cardService.countDifficultCards(user, deckId);
+
+        return ResponseEntity.ok(count);
     }
 
     /**

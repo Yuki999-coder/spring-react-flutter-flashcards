@@ -9,6 +9,7 @@ import {
   Plus,
   Grid3x3,
   ClipboardList,
+  Flame,
 } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/axios";
@@ -37,6 +38,7 @@ export default function DeckDetailPage({ params }: PageProps) {
   const [deckId, setDeckId] = useState<string | null>(null);
   const [deck, setDeck] = useState<Deck | null>(null);
   const [cards, setCards] = useState<Card[]>([]);
+  const [difficultCount, setDifficultCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -64,13 +66,15 @@ export default function DeckDetailPage({ params }: PageProps) {
 
     setIsLoading(true);
     try {
-      const [deckResponse, cardsResponse] = await Promise.all([
+      const [deckResponse, cardsResponse, difficultCountResponse] = await Promise.all([
         api.get(`/decks/${deckId}`),
         api.get(`/decks/${deckId}/cards`),
+        api.get(`/decks/${deckId}/cards/difficult/count`),
       ]);
 
       setDeck(deckResponse.data);
       setCards(cardsResponse.data);
+      setDifficultCount(difficultCountResponse.data);
     } catch (error: any) {
       if (error.response?.status === 404) {
         toast.error("Không tìm thấy bộ thẻ");
@@ -103,6 +107,11 @@ export default function DeckDetailPage({ params }: PageProps) {
   const handleTest = () => {
     if (!deck || cards.length === 0) return;
     router.push(`/decks/${deckId}/test`);
+  };
+
+  const handleCramMode = () => {
+    if (!deck || difficultCount === 0) return;
+    router.push(`/decks/${deckId}/review?mode=difficult`);
   };
 
   if (!deckId) {
@@ -235,6 +244,32 @@ export default function DeckDetailPage({ params }: PageProps) {
                 {cards.length === 0 && (
                   <TooltipContent>
                     <p>Cần có ít nhất 1 thẻ để làm bài kiểm tra</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+
+              {/* Cram Mode Button - Review Difficult Cards */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <Button
+                      onClick={handleCramMode}
+                      disabled={difficultCount === 0}
+                      variant="outline"
+                      className="border-orange-500 text-orange-600 hover:bg-orange-50 hover:text-orange-700 disabled:border-gray-300 disabled:text-gray-400"
+                    >
+                      <Flame className="mr-2 h-4 w-4" />
+                      Ôn tập {difficultCount} thẻ khó
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                {difficultCount === 0 ? (
+                  <TooltipContent>
+                    <p>Không có thẻ khó để ôn tập</p>
+                  </TooltipContent>
+                ) : (
+                  <TooltipContent>
+                    <p>Ôn tập những thẻ bạn hay quên hoặc học lại</p>
                   </TooltipContent>
                 )}
               </Tooltip>

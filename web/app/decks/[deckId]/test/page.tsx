@@ -27,6 +27,7 @@ import {
   Trophy,
   RotateCcw,
   Home,
+  Brain,
 } from "lucide-react";
 
 type TestPhase = "CONFIG" | "TESTING" | "RESULT";
@@ -137,6 +138,28 @@ export default function TestPage() {
   // Back to deck
   const handleBackToDeck = () => {
     router.push(`/decks/${deckId}`);
+  };
+
+  // Review wrong cards from test
+  const handleReviewWrongCards = () => {
+    if (!result) return;
+
+    // Get all wrong cards from test result
+    const wrongCards = result.questions
+      .filter((q) => !isAnswerCorrect(q))
+      .map((q) => cards.find((c) => c.id === q.cardId))
+      .filter((card): card is Card => card !== undefined);
+
+    if (wrongCards.length === 0) {
+      toast.info("Không có câu sai để học lại!");
+      return;
+    }
+
+    // Store wrong cards in sessionStorage for review page
+    sessionStorage.setItem("cramCards", JSON.stringify(wrongCards));
+    
+    // Navigate to review page with special mode
+    router.push(`/decks/${deckId}/review?mode=wrongCards`);
   };
 
   if (isLoading) {
@@ -566,7 +589,16 @@ export default function TestPage() {
           </div>
 
           {/* Action buttons */}
-          <div className="flex gap-4 justify-center">
+          <div className="flex gap-4 justify-center flex-wrap">
+            {result.score < 100 && (
+              <Button
+                onClick={handleReviewWrongCards}
+                className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-6"
+              >
+                <Brain className="w-5 h-5 mr-2" />
+                Học lại {result.totalQuestions - result.correctAnswers} câu sai
+              </Button>
+            )}
             <Button
               onClick={handleRestartTest}
               className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6"

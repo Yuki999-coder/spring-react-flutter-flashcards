@@ -88,4 +88,48 @@ public interface CardRepository extends JpaRepository<Card, Long> {
            "AND c.isDeleted = false " +
            "AND d.isDeleted = false")
     List<Card> findAllByDeck_User_Id(@Param("userId") Long userId);
+
+    /**
+     * Find difficult cards in a deck for cram mode
+     * Criteria: easeFactor < 2.1 OR learningState = 'RELEARNING'
+     * Used for "Review Difficult Cards" feature
+     *
+     * @param deckId Deck ID
+     * @param userId User ID who owns the deck
+     * @return List of difficult cards ordered by position
+     */
+    @Query("SELECT c FROM Card c " +
+           "INNER JOIN Deck d ON c.deckId = d.id " +
+           "LEFT JOIN CardProgress cp ON c.id = cp.cardId AND cp.userId = :userId " +
+           "WHERE c.deckId = :deckId " +
+           "AND d.userId = :userId " +
+           "AND c.isDeleted = false " +
+           "AND d.isDeleted = false " +
+           "AND (cp.easeFactor < 2.1 OR cp.learningState = 'RELEARNING') " +
+           "ORDER BY c.position ASC")
+    List<Card> findDifficultCardsByDeckIdAndUserId(
+        @Param("deckId") Long deckId,
+        @Param("userId") Long userId
+    );
+
+    /**
+     * Count difficult cards in a deck
+     * Same criteria as findDifficultCardsByDeckIdAndUserId
+     *
+     * @param deckId Deck ID
+     * @param userId User ID
+     * @return Number of difficult cards
+     */
+    @Query("SELECT COUNT(c) FROM Card c " +
+           "INNER JOIN Deck d ON c.deckId = d.id " +
+           "LEFT JOIN CardProgress cp ON c.id = cp.cardId AND cp.userId = :userId " +
+           "WHERE c.deckId = :deckId " +
+           "AND d.userId = :userId " +
+           "AND c.isDeleted = false " +
+           "AND d.isDeleted = false " +
+           "AND (cp.easeFactor < 2.1 OR cp.learningState = 'RELEARNING')")
+    long countDifficultCardsByDeckIdAndUserId(
+        @Param("deckId") Long deckId,
+        @Param("userId") Long userId
+    );
 }
