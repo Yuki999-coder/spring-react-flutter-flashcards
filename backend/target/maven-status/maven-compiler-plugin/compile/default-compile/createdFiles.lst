@@ -1,4 +1,5 @@
 com\flashcards\dto\request\RegisterRequest.class
+com\flashcards\service\ImportExportService.class
 com\flashcards\dto\ReviewResponse.class
 com\flashcards\repository\CardRepository.class
 com\flashcards\exception\DeckNotFoundException.class
@@ -30,6 +31,7 @@ com\flashcards\service\ReviewService.class
 com\flashcards\FlashcardsApplication.class
 com\flashcards\exception\UnauthorizedException.class
 com\flashcards\dto\request\UpdateDeckRequest.class
+com\flashcards\dto\request\ImportCardsRequest$ImportCardsRequestBuilder.class
 com\flashcards\dto\request\UpdateDeckRequest$UpdateDeckRequestBuilder.class
 com\flashcards\model\enums\LearningState.class
 com\flashcards\repository\StudyLogRepository.class
@@ -37,11 +39,13 @@ com\flashcards\config\SecurityConfig.class
 com\flashcards\model\entity\Deck$DeckBuilder.class
 com\flashcards\model\enums\Grade.class
 com\flashcards\dto\request\RegisterRequest$RegisterRequestBuilder.class
+com\flashcards\dto\response\ImportResultDTO$ImportResultDTOBuilder.class
 com\flashcards\dto\request\CreateDeckRequest$CreateDeckRequestBuilder.class
 com\flashcards\dto\request\ReviewRequest$ReviewRequestBuilder.class
 com\flashcards\service\CardService.class
 com\flashcards\model\entity\StudyLog$StudyLogBuilder.class
 com\flashcards\security\JwtUtils.class
+com\flashcards\dto\response\ImportResultDTO.class
 com\flashcards\dto\response\AuthResponse$AuthResponseBuilder.class
 com\flashcards\model\entity\User$UserBuilder.class
 com\flashcards\repository\DeckRepository.class
@@ -53,6 +57,7 @@ com\flashcards\exception\GlobalExceptionHandler.class
 com\flashcards\controller\AuthController.class
 com\flashcards\service\DeckService.class
 com\flashcards\dto\response\CardResponse$CardResponseBuilder.class
+com\flashcards\dto\request\ImportCardsRequest.class
 com\flashcards\model\entity\User.class
 com\flashcards\service\ReviewService$1.class
 com\flashcards\controller\ReviewController.class

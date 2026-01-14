@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/tooltip";
 import { CardList } from "@/components/CardList";
 import { AddCardDialog } from "@/components/AddCardDialog";
+import { ImportExportDialog } from "@/components/ImportExportDialog";
 
 interface PageProps {
   params: Promise<{ deckId: string }>;
@@ -155,10 +156,17 @@ export default function DeckDetailPage({ params }: PageProps) {
             </div>
             <div className="flex gap-2">
               {deckId && (
-                <AddCardDialog
-                  deckId={parseInt(deckId)}
-                  onCardAdded={fetchData}
-                />
+                <>
+                  <AddCardDialog
+                    deckId={parseInt(deckId)}
+                    onCardAdded={fetchData}
+                  />
+                  
+                  <ImportExportDialog
+                    deckId={parseInt(deckId)}
+                    onImportSuccess={fetchData}
+                  />
+                </>
               )}
 
               {deckId && (

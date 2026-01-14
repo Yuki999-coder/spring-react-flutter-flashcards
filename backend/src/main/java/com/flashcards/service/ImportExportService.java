@@ -1,6 +1,6 @@
 package com.flashcards.service;
 
-import com.flashcards.dto.request.CardRequest;
+import com.flashcards.dto.request.CreateCardRequest;
 import com.flashcards.dto.request.ImportCardsRequest;
 import com.flashcards.dto.response.CardResponse;
 import com.flashcards.dto.response.ImportResultDTO;
@@ -83,15 +83,14 @@ public class ImportExportService {
                     continue;
                 }
                 
-                // Create card
-                currentPosition++;
-                CardRequest cardRequest = CardRequest.builder()
+                // Create card using CardService
+                CreateCardRequest cardRequest = CreateCardRequest.builder()
+                        .deckId(deckId)
                         .term(term)
                         .definition(definition)
-                        .position(currentPosition)
                         .build();
                 
-                CardResponse card = cardService.createCard(user, deckId, cardRequest);
+                CardResponse card = cardService.addCardToDeck(user, cardRequest);
                 importedCards.add(card);
                 successCount++;
                 
