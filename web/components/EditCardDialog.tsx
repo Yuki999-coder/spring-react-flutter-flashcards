@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import Image from "next/image";
 import { Image as ImageIcon, X, Loader2 } from "lucide-react";
@@ -47,6 +47,17 @@ export function EditCardDialog({
     term?: string;
     definition?: string;
   }>({});
+
+  // Reset form when dialog opens or card changes
+  useEffect(() => {
+    if (open) {
+      setTerm(card.term);
+      setDefinition(card.definition);
+      setExample(card.example || "");
+      setImageUrl(card.imageUrl || "");
+      setErrors({});
+    }
+  }, [open, card]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -144,7 +155,7 @@ export function EditCardDialog({
                 Thuật ngữ (Mặt trước) <span className="text-red-500">*</span>
               </Label>
               <RichTextEditor
-                content={term}
+                value={term}
                 onChange={setTerm}
                 placeholder="Nhập thuật ngữ..."
               />
@@ -158,7 +169,7 @@ export function EditCardDialog({
                 Định nghĩa (Mặt sau) <span className="text-red-500">*</span>
               </Label>
               <RichTextEditor
-                content={definition}
+                value={definition}
                 onChange={setDefinition}
                 placeholder="Nhập định nghĩa..."
               />
@@ -170,7 +181,7 @@ export function EditCardDialog({
             <div className="grid gap-2">
               <Label htmlFor="edit-example">Ví dụ (Tùy chọn)</Label>
               <RichTextEditor
-                content={example}
+                value={example}
                 onChange={setExample}
                 placeholder="Nhập ví dụ..."
               />

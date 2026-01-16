@@ -1,5 +1,6 @@
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\model\entity\StudySession.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\controller\CardController.java
+E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\dto\request\ReorderCardsRequest.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\exception\FolderNotFoundException.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\model\enums\AnswerMode.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\dto\request\BulkCreateCardsRequest.java
@@ -65,11 +66,13 @@ E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\dt
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\dto\response\FolderResponse.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\dto\response\MasteryLevelStatistics.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\config\SecurityConfig.java
+E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\dto\request\RecordProgressRequest.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\validation\HtmlNotBlank.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\config\OpenApiConfig.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\repository\DeckRepository.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\service\FolderService.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\model\entity\Folder.java
+E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\dto\response\DueCardsSummaryResponse.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\dto\ReviewResponse.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\validation\HtmlNotBlankValidator.java
 E:\du_an\spring-react-flutter-flashcards\backend\src\main\java\com\flashcards\dto\response\TestResultResponse.java

@@ -161,15 +161,16 @@ export default function DeckDetailPage({ params }: PageProps) {
       return "learning";
     }
     
-    if (card.learningState === "REVIEWING" && card.nextReview) {
-      const nextReviewDate = new Date(card.nextReview);
-      const now = new Date();
-      const daysUntilReview = Math.floor((nextReviewDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    if (card.learningState === "REVIEWING" && card.interval !== undefined) {
+      // Use interval instead of calculating from nextReview
+      const interval = card.interval;
       
-      if (daysUntilReview >= 21) {
+      if (interval >= 21) {
         return "mastered";
-      } else {
+      } else if (interval >= 3) {
         return "almost";
+      } else {
+        return "learning"; // < 3 days = still learning
       }
     }
     
@@ -304,9 +305,17 @@ export default function DeckDetailPage({ params }: PageProps) {
                     </Button>
                   </span>
                 </TooltipTrigger>
-                {cards.length === 0 && (
+                {cards.length === 0 ? (
                   <TooltipContent>
                     <p>Cần có ít nhất 1 thẻ để bắt đầu học</p>
+                  </TooltipContent>
+                ) : (
+                  <TooltipContent className="max-w-sm">
+                    <p className="font-semibold mb-1">Học tất cả thẻ</p>
+                    <p className="text-xs">
+                      4 chế độ: Trắc nghiệm, Gõ phím, Hỗn hợp, Lật thẻ.
+                      Dùng cho <strong>thẻ mới</strong> hoặc ôn tập tất cả thẻ trong deck.
+                    </p>
                   </TooltipContent>
                 )}
               </Tooltip>
@@ -390,9 +399,17 @@ export default function DeckDetailPage({ params }: PageProps) {
                     </Button>
                   </span>
                 </TooltipTrigger>
-                {cards.length === 0 && (
+                {cards.length === 0 ? (
                   <TooltipContent>
                     <p>Cần có ít nhất 1 thẻ để bắt đầu học</p>
+                  </TooltipContent>
+                ) : (
+                  <TooltipContent className="max-w-sm">
+                    <p className="font-semibold mb-1">Ôn tập theo lịch SRS</p>
+                    <p className="text-xs">
+                      Chỉ hiển thị các thẻ <strong>đến hạn ôn tập</strong> theo thuật toán Spaced Repetition.
+                      Nếu không có thẻ nào, hãy dùng <strong>"Học thuộc lòng"</strong> để bắt đầu học thẻ mới!
+                    </p>
                   </TooltipContent>
                 )}
               </Tooltip>

@@ -137,7 +137,11 @@ export default function ReviewPage({ params }: PageProps) {
         setDueCards(sorted);
 
         if (sorted.length === 0) {
-          toast.info("Không có thẻ nào cần ôn tập!");
+          toast.info(
+            `Không có thẻ nào cần ôn tập! \ud83c\udf89\n\n` +
+            `💡 Mẹo: Dùng nút "Học thuộc lòng" để học thẻ mới hoặc ôn tất cả thẻ trong deck!`,
+            { duration: 5000 }
+          );
         }
       }
     } catch (error: any) {

@@ -35,6 +35,7 @@ com\flashcards\dto\response\ImportResultDTO$ImportResultDTOBuilder.class
 com\flashcards\dto\request\CreateDeckRequest$CreateDeckRequestBuilder.class
 com\flashcards\service\GeminiService$1.class
 com\flashcards\controller\AiController.class
+com\flashcards\dto\response\DueCardsSummaryResponse$DeckDueInfo$DeckDueInfoBuilder.class
 com\flashcards\dto\response\FolderResponse$FolderResponseBuilder.class
 com\flashcards\security\JwtUtils.class
 com\flashcards\dto\response\AuthResponse$AuthResponseBuilder.class
@@ -67,6 +68,7 @@ com\flashcards\repository\UserRepository.class
 com\flashcards\dto\ReviewResponse$ReviewResponseBuilder.class
 com\flashcards\validation\HtmlNotBlank.class
 com\flashcards\dto\request\CreateTestResultRequest$CreateTestResultRequestBuilder.class
+com\flashcards\dto\response\DueCardsSummaryResponse$DueCardsSummaryResponseBuilder.class
 com\flashcards\dto\response\ErrorResponse$ErrorResponseBuilder.class
 com\flashcards\model\entity\Deck.class
 com\flashcards\controller\CardController.class
@@ -95,20 +97,25 @@ com\flashcards\dto\response\ModeStatisticsDetail.class
 com\flashcards\dto\response\SearchResultResponse$SearchResultResponseBuilder.class
 com\flashcards\service\CardService.class
 com\flashcards\model\entity\StudyLog$StudyLogBuilder.class
+com\flashcards\dto\request\RecordProgressRequest.class
 com\flashcards\dto\response\ImportResultDTO.class
 com\flashcards\dto\response\AiCardResponse$AiCardResponseBuilder.class
 com\flashcards\dto\response\StudySessionResponse$StudySessionResponseBuilder.class
 com\flashcards\model\entity\User$UserBuilder.class
+com\flashcards\dto\request\ReorderCardsRequest.class
 com\flashcards\dto\statistics\StatisticsSummaryDTO$StatisticsSummaryDTOBuilder.class
 com\flashcards\service\StatisticsService.class
 com\flashcards\dto\response\CardResponse.class
 com\flashcards\exception\GlobalExceptionHandler.class
 com\flashcards\service\GeminiService.class
 com\flashcards\controller\AuthController.class
+com\flashcards\dto\request\ReorderCardsRequest$ReorderCardsRequestBuilder.class
 com\flashcards\model\entity\Folder$FolderBuilder.class
 com\flashcards\service\DeckService.class
+com\flashcards\dto\request\RecordProgressRequest$RecordProgressRequestBuilder.class
 com\flashcards\dto\response\CardResponse$CardResponseBuilder.class
 com\flashcards\repository\FolderRepository.class
+com\flashcards\dto\response\DueCardsSummaryResponse.class
 com\flashcards\dto\response\StatisticsSummaryResponse.class
 com\flashcards\dto\request\CreateStudySessionRequest$CreateStudySessionRequestBuilder.class
 com\flashcards\dto\response\StatisticsSummaryResponse$StatisticsSummaryResponseBuilder.class
@@ -128,3 +135,4 @@ com\flashcards\service\TestResultService.class
 com\flashcards\repository\CardProgressRepository.class
 com\flashcards\dto\request\UpdateCardRequest$UpdateCardRequestBuilder.class
 com\flashcards\model\entity\CardProgress.class
+com\flashcards\dto\response\DueCardsSummaryResponse$DeckDueInfo.class

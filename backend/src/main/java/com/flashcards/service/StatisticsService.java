@@ -221,9 +221,12 @@ public class StatisticsService {
                     if (interval != null && interval >= 21) {
                         // Mastered (21+ days interval)
                         mastered++;
-                    } else {
-                        // Almost done (< 21 days interval)
+                    } else if (interval != null && interval >= 3) {
+                        // Almost done (3-20 days interval)
                         almostDone++;
+                    } else {
+                        // Still learning (< 3 days interval)
+                        stillLearning++;
                     }
                 } else {
                     // Default for other states
@@ -287,8 +290,12 @@ public class StatisticsService {
                 } else if (state == LearningState.REVIEWING) {
                     if (interval != null && interval >= 21) {
                         mastered++;
-                    } else {
+                    } else if (interval != null && interval >= 3) {
+                        // Almost done (3-20 days interval)
                         almostDone++;
+                    } else {
+                        // Still learning (< 3 days interval)
+                        stillLearning++;
                     }
                 } else {
                     newCards++;

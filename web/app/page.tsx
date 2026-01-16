@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { BookOpen, LogOut, FolderPlus, Folder as FolderIcon } from "lucide-react";
+import { BookOpen, LogOut, FolderPlus, Folder as FolderIcon, Moon, Sun } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/axios";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -14,17 +14,31 @@ import { CreateDeckDialog } from "@/components/CreateDeckDialog";
 import { CreateFolderDialog } from "@/components/CreateFolderDialog";
 import { DeckSkeleton } from "@/components/DeckSkeleton";
 import { StatisticsBlock } from "@/components/StatisticsBlock";
+import { DueCardsNotification } from "@/components/DueCardsNotification";
 import { SearchCommand } from "@/components/SearchCommand";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTheme } from "next-themes";
 
 export default function Home() {
   const router = useRouter();
   const { isAuthenticated, logout, user } = useAuthStore();
+  const { theme, setTheme } = useTheme();
   const [folders, setFolders] = useState<Folder[]>([]);
   const [uncategorizedDecks, setUncategorizedDecks] = useState<Deck[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<string>("folders");
+  const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
+  const closeMenuTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -58,14 +72,31 @@ export default function Home() {
     router.push("/login");
   };
 
+  const openThemeMenu = () => {
+    if (closeMenuTimeout.current) {
+      clearTimeout(closeMenuTimeout.current);
+      closeMenuTimeout.current = null;
+    }
+    setIsThemeMenuOpen(true);
+  };
+
+  const scheduleCloseThemeMenu = () => {
+    if (closeMenuTimeout.current) {
+      clearTimeout(closeMenuTimeout.current);
+    }
+    closeMenuTimeout.current = setTimeout(() => {
+      setIsThemeMenuOpen(false);
+    }, 150);
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950">
       {/* Header */}
-      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-10">
+      <header className="border-b bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm sticky top-0 z-10 dark:border-slate-800">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <BookOpen className="h-6 w-6 text-primary" />
-            <h1 className="text-2xl font-bold">Flashcards Learning</h1>
+            <h1 className="text-2xl font-bold dark:text-slate-100">Flashcards Learning</h1>
           </div>
           
           {/* Search Command */}
@@ -74,9 +105,39 @@ export default function Home() {
           </div>
           
           <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground hidden sm:inline">
-              {user?.email}
-            </span>
+            <DropdownMenu open={isThemeMenuOpen} onOpenChange={setIsThemeMenuOpen}>
+              <DropdownMenuTrigger asChild>
+                <span
+                  className="text-sm text-muted-foreground hidden sm:inline cursor-pointer"
+                  onPointerEnter={openThemeMenu}
+                  onPointerLeave={scheduleCloseThemeMenu}
+                >
+                  {user?.email || "Tài khoản"}
+                </span>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="rounded-xl"
+                onPointerEnter={openThemeMenu}
+                onPointerLeave={scheduleCloseThemeMenu}
+              >
+                <DropdownMenuLabel>Giao diện</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuRadioGroup
+                  value={theme || "light"}
+                  onValueChange={(value) => setTheme(value)}
+                >
+                  <DropdownMenuRadioItem value="light">
+                    <Sun className="mr-2 h-4 w-4" />
+                    Light
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="dark">
+                    <Moon className="mr-2 h-4 w-4" />
+                    Dark
+                  </DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button variant="ghost" size="sm" onClick={handleLogout}>
               <LogOut className="h-4 w-4 mr-2" />
               Đăng xuất
@@ -87,6 +148,9 @@ export default function Home() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
+        {/* Due Cards Notification */}
+        <DueCardsNotification />
+
         {/* Statistics Block */}
         <StatisticsBlock />
 

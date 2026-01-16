@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import {
   ArrowLeft,
@@ -53,6 +53,7 @@ interface PageProps {
 
 export default function LearnModePage({ params }: PageProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isAuthenticated } = useAuthStore();
   const [deckId, setDeckId] = useState<string | null>(null);
   const [cards, setCards] = useState<Card[]>([]);
@@ -84,6 +85,13 @@ export default function LearnModePage({ params }: PageProps) {
   const [isCramMode, setIsCramMode] = useState(false);
   const [cramCardCount, setCramCardCount] = useState(0);
 
+  const masteryParamRaw = searchParams.get("mastery");
+  const masteryParam = ["new", "learning", "almost", "mastered"].includes(
+    masteryParamRaw || ""
+  )
+    ? masteryParamRaw
+    : null;
+
   // TTS Hook
   const { speak } = useTTS();
 
@@ -93,6 +101,59 @@ export default function LearnModePage({ params }: PageProps) {
     deckId: deckId ? parseInt(deckId) : undefined,
     enabled: hasStarted && !isComplete && deckId !== null,
   });
+
+  // Helper function to record progress to SRS
+  const recordProgressToSRS = async (cardId: number, mode: "MCQ" | "WRITTEN" | "MIXED", isCorrect: boolean) => {
+    try {
+      await api.post(`/cards/${cardId}/record-progress`, {
+        mode,
+        isCorrect,
+      });
+      console.log(`✅ SRS Updated: Card ${cardId}, Mode: ${mode}, Correct: ${isCorrect}`);
+    } catch (error: any) {
+      console.error("Failed to record progress to SRS:", error);
+      // Don't show error toast to avoid interrupting user flow
+      // The study session will still continue
+    }
+  };
+
+  const getCardMasteryLevel = (card: Card): "new" | "learning" | "almost" | "mastered" => {
+    if (!card.learningState || card.learningState === "NEW") return "new";
+    if (
+      card.learningState === "LEARNING_MCQ" ||
+      card.learningState === "LEARNING_TYPING" ||
+      card.learningState === "RELEARNING"
+    ) {
+      return "learning";
+    }
+    if (card.learningState === "REVIEWING" && card.interval !== undefined) {
+      // Use interval instead of calculating from nextReview
+      const interval = card.interval;
+      if (interval >= 21) {
+        return "mastered";
+      } else if (interval >= 3) {
+        return "almost";
+      } else {
+        return "learning"; // < 3 days = still learning
+      }
+    }
+    return "new";
+  };
+
+  const getMasteryLabel = (value: string): string => {
+    switch (value) {
+      case "new":
+        return "New Cards";
+      case "learning":
+        return "Still Learning";
+      case "almost":
+        return "Almost Done";
+      case "mastered":
+        return "Mastered";
+      default:
+        return "Mastery";
+    }
+  };
 
   useEffect(() => {
     const initPage = async () => {
@@ -112,7 +173,7 @@ export default function LearnModePage({ params }: PageProps) {
     if (deckId) {
       fetchCards();
     }
-  }, [deckId]);
+  }, [deckId, masteryParam]);
 
   // Auto-focus khi chuyển câu trong WRITTEN mode
   useEffect(() => {
@@ -174,7 +235,27 @@ export default function LearnModePage({ params }: PageProps) {
           return;
         }
 
-        setCards(fetchedCards);
+        let filteredCards = fetchedCards;
+
+        if (masteryParam) {
+          filteredCards = fetchedCards.filter((card) => {
+            const level = getCardMasteryLevel(card);
+            return level === masteryParam;
+          });
+
+          if (filteredCards.length === 0) {
+            toast.error("Không có thẻ phù hợp với mức độ này");
+            router.push(`/decks/${deckId}`);
+            return;
+          }
+
+          const label = getMasteryLabel(masteryParam);
+          toast.success(`Đang học ${filteredCards.length} thẻ "${label}"`, {
+            duration: 3000,
+          });
+        }
+
+        setCards(filteredCards);
         setIsCramMode(false);
       }
     } catch (error: any) {
@@ -237,7 +318,12 @@ export default function LearnModePage({ params }: PageProps) {
     setAnswers([...answers, result]);
 
     // Track card as studied
-    incrementCardsStudied(currentQuestion.cardId);
+    incrementCardsStudied(currentQuestion.card.id);
+
+    // 🔥 NEW: Record progress to SRS system
+    // Detect actual mode: if selectedMode is MIXED, pass MIXED; otherwise pass selectedMode
+    const progressMode = selectedMode === "MIXED" ? "MIXED" : "MCQ";
+    await recordProgressToSRS(currentQuestion.card.id, progressMode, isCorrect);
 
     if (isCorrect) {
       toast.success("Chính xác! 🎉");
@@ -276,7 +362,12 @@ export default function LearnModePage({ params }: PageProps) {
     const currentQuestion = questions[currentIndex];
 
     // Track card as studied
-    incrementCardsStudied(currentQuestion.cardId);
+    incrementCardsStudied(currentQuestion.card.id);
+
+    // 🔥 NEW: Record progress to SRS system
+    // Detect actual mode: if selectedMode is MIXED, pass MIXED; otherwise pass WRITTEN
+    const progressMode = selectedMode === "MIXED" ? "MIXED" : "WRITTEN";
+    await recordProgressToSRS(currentQuestion.card.id, progressMode, isCorrectAnswer);
 
     const result: AnswerResult = {
       isCorrect: isCorrectAnswer,
@@ -627,6 +718,17 @@ export default function LearnModePage({ params }: PageProps) {
   if (selectedMode === "FLASHCARD") {
     const currentCard = cards[currentIndex];
     const progress = ((currentIndex + 1) / cards.length) * 100;
+
+    // Check if currentCard exists
+    if (!currentCard) {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-lg text-muted-foreground">Đang tải...</p>
+          </div>
+        </div>
+      );
+    }
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">

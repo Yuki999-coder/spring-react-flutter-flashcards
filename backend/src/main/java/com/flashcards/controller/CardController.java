@@ -1,8 +1,10 @@
 package com.flashcards.controller;
 
 import com.flashcards.dto.request.CreateCardRequest;
+import com.flashcards.dto.request.ReorderCardsRequest;
 import com.flashcards.dto.request.UpdateCardRequest;
 import com.flashcards.dto.response.CardResponse;
+import com.flashcards.dto.response.DueCardsSummaryResponse;
 import com.flashcards.exception.UnauthorizedException;
 import com.flashcards.model.entity.User;
 import com.flashcards.repository.UserRepository;
@@ -162,6 +164,30 @@ public class CardController {
     }
 
     /**
+     * Reorder cards in a deck
+     * PUT /api/v1/decks/{deckId}/cards/reorder
+     *
+     * @param userDetails Authenticated user from JWT token
+     * @param deckId Deck ID
+     * @param request Request with card IDs in new order
+     * @return List of updated cards
+     */
+    @PutMapping("/decks/{deckId}/cards/reorder")
+    public ResponseEntity<List<CardResponse>> reorderCards(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long deckId,
+            @Valid @RequestBody ReorderCardsRequest request) {
+        
+        User user = getCurrentUser(userDetails);
+        log.info("PUT /api/v1/decks/{}/cards/reorder - userId: {}, count: {}", 
+                 deckId, user.getId(), request.getCardIds().size());
+
+        List<CardResponse> responses = cardService.reorderCards(user, deckId, request);
+
+        return ResponseEntity.ok(responses);
+    }
+
+    /**
      * Soft delete a card
      * DELETE /api/v1/cards/{id}
      *
@@ -242,6 +268,25 @@ public class CardController {
         long count = cardService.getCardCount(deckId);
 
         return ResponseEntity.ok(count);
+    }
+
+    /**
+     * Get summary of due cards for review
+     * GET /api/v1/cards/due/summary
+     *
+     * @param userDetails Authenticated user from JWT token
+     * @return Summary of due cards grouped by deck
+     */
+    @GetMapping("/cards/due/summary")
+    public ResponseEntity<DueCardsSummaryResponse> getDueCardsSummary(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        
+        User user = getCurrentUser(userDetails);
+        log.info("GET /api/v1/cards/due/summary - userId: {}", user.getId());
+
+        DueCardsSummaryResponse response = cardService.getDueCardsSummary(user);
+
+        return ResponseEntity.ok(response);
     }
 
     /**

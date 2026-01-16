@@ -1,5 +1,6 @@
 package com.flashcards.controller;
 
+import com.flashcards.dto.request.RecordProgressRequest;
 import com.flashcards.dto.request.ReviewRequest;
 import com.flashcards.dto.response.CardResponse;
 import com.flashcards.dto.response.ReviewResponse;
@@ -7,6 +8,7 @@ import com.flashcards.exception.UnauthorizedException;
 import com.flashcards.model.entity.Card;
 import com.flashcards.model.entity.CardProgress;
 import com.flashcards.model.entity.User;
+import com.flashcards.model.enums.Grade;
 import com.flashcards.repository.CardProgressRepository;
 import com.flashcards.repository.CardRepository;
 import com.flashcards.repository.UserRepository;
@@ -124,6 +126,55 @@ public class ReviewController {
 
         log.info("Card reviewed successfully: cardId={}, newState={}, nextReview={}", 
                  cardId, response.getLearningState(), response.getNextReview());
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Record progress from MCQ/WRITTEN/MIXED modes
+     * POST /api/v1/cards/{cardId}/record-progress
+     *
+     * Automatically maps answer correctness to SRS grades:
+     * - isCorrect = true -> GOOD (normal success)
+     * - isCorrect = false -> AGAIN (failed, reset)
+     * 
+     * Note: For WRITTEN mode, correct answers could use EASY grade
+     * to reward the higher difficulty, but we use GOOD for consistency.
+     *
+     * @param userDetails Authenticated user from JWT token
+     * @param cardId Card ID being answered
+     * @param request Progress data (mode, isCorrect, timeTakenMs)
+     * @return Updated card progress
+     */
+    @PostMapping("/cards/{cardId}/record-progress")
+    public ResponseEntity<ReviewResponse> recordProgress(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long cardId,
+            @Valid @RequestBody RecordProgressRequest request) {
+        
+        User user = getCurrentUser(userDetails);
+        log.info("POST /api/v1/cards/{}/record-progress - userId: {}, mode: {}, isCorrect: {}", 
+                 cardId, user.getId(), request.getMode(), request.getIsCorrect());
+
+        // Map isCorrect to Grade
+        // For now, we use GOOD for correct answers (all modes)
+        // You can change to EASY for WRITTEN mode if desired
+        Grade grade = request.getIsCorrect() ? Grade.GOOD : Grade.AGAIN;
+
+        // Alternative: Reward WRITTEN mode with EASY grade
+        // Grade grade = request.getIsCorrect() 
+        //     ? (request.getMode().equals("WRITTEN") ? Grade.EASY : Grade.GOOD)
+        //     : Grade.AGAIN;
+
+        log.debug("Mapped to grade: {}", grade);
+
+        // Use existing ReviewService logic
+        CardProgress updatedProgress = reviewService.reviewCard(user, cardId, grade);
+
+        ReviewResponse response = toReviewResponse(updatedProgress);
+
+        log.info("Progress recorded: cardId={}, mode={}, grade={}, newState={}, interval={}", 
+                 cardId, request.getMode(), grade, response.getLearningState(), response.getInterval());
 
         return ResponseEntity.ok(response);
     }

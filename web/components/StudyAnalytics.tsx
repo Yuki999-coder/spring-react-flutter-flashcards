@@ -149,7 +149,20 @@ export function StudyAnalytics({ deckId }: StudyAnalyticsProps) {
   };
 
   const handleStudyLevel = (level: MasteryLevel) => {
-    toast.info(`Đang phát triển: Học các thẻ "${level.name}"`);
+    if (!deckId) {
+      toast.error("Không tìm thấy bộ thẻ để học");
+      return;
+    }
+
+    const masteryParamMap: Record<MasteryLevel["key"], string> = {
+      newCards: "new",
+      stillLearning: "learning",
+      almostDone: "almost",
+      mastered: "mastered",
+    };
+
+    const masteryParam = masteryParamMap[level.key];
+    router.push(`/decks/${deckId}/learn?mastery=${masteryParam}`);
   };
 
   if (isLoading) {
@@ -182,9 +195,9 @@ export function StudyAnalytics({ deckId }: StudyAnalyticsProps) {
   return (
     <div className="space-y-6">
       {/* Mode Selector */}
-      <Card>
+      <Card className="dark:bg-slate-900 dark:border-slate-800">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 dark:text-slate-100">
             <Clock className="h-5 w-5" />
             Study Analytics
           </CardTitle>
@@ -210,9 +223,9 @@ export function StudyAnalytics({ deckId }: StudyAnalyticsProps) {
       {/* All Modes - Mastery Levels */}
       {selectedMode === "all" && (
         <>
-          <Card>
+          <Card className="dark:bg-slate-900 dark:border-slate-800">
             <CardHeader>
-              <CardTitle>Mastery Levels</CardTitle>
+              <CardTitle className="dark:text-slate-100">Mastery Levels</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {masteryLevels.map((level) => {
@@ -264,9 +277,9 @@ export function StudyAnalytics({ deckId }: StudyAnalyticsProps) {
           </Card>
 
           {/* All Modes - Study Details */}
-          <Card>
+          <Card className="dark:bg-slate-900 dark:border-slate-800">
             <CardHeader>
-              <CardTitle>Study Overview</CardTitle>
+              <CardTitle className="dark:text-slate-100">Study Overview</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -392,9 +405,9 @@ export function StudyAnalytics({ deckId }: StudyAnalyticsProps) {
 
       {/* Learn Mode */}
       {selectedMode === "learn" && (
-        <Card>
+        <Card className="dark:bg-slate-900 dark:border-slate-800">
           <CardHeader>
-            <CardTitle>Learn Mode Details</CardTitle>
+            <CardTitle className="dark:text-slate-100">Learn Mode Details</CardTitle>
           </CardHeader>
           <CardContent>
             {learnDetail ? (
@@ -446,9 +459,9 @@ export function StudyAnalytics({ deckId }: StudyAnalyticsProps) {
 
       {/* Practice Test Mode */}
       {selectedMode === "test" && (
-        <Card>
+        <Card className="dark:bg-slate-900 dark:border-slate-800">
           <CardHeader>
-            <CardTitle>Practice Test Details</CardTitle>
+            <CardTitle className="dark:text-slate-100">Practice Test Details</CardTitle>
           </CardHeader>
           <CardContent>
             {testDetail ? (
@@ -492,9 +505,9 @@ export function StudyAnalytics({ deckId }: StudyAnalyticsProps) {
 
       {/* Matching Mode */}
       {selectedMode === "match" && (
-        <Card>
+        <Card className="dark:bg-slate-900 dark:border-slate-800">
           <CardHeader>
-            <CardTitle>Matching Details</CardTitle>
+            <CardTitle className="dark:text-slate-100">Matching Details</CardTitle>
           </CardHeader>
           <CardContent>
             {matchDetail ? (
@@ -545,9 +558,9 @@ export function StudyAnalytics({ deckId }: StudyAnalyticsProps) {
 
       {/* Spaced Repetition Mode */}
       {selectedMode === "srs" && (
-        <Card>
+        <Card className="dark:bg-slate-900 dark:border-slate-800">
           <CardHeader>
-            <CardTitle>Spaced Repetition Details</CardTitle>
+            <CardTitle className="dark:text-slate-100">Spaced Repetition Details</CardTitle>
           </CardHeader>
           <CardContent>
             {srsDetail ? (

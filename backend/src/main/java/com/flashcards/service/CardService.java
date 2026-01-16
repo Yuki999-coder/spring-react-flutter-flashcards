@@ -1,8 +1,10 @@
 package com.flashcards.service;
 
 import com.flashcards.dto.request.CreateCardRequest;
+import com.flashcards.dto.request.ReorderCardsRequest;
 import com.flashcards.dto.request.UpdateCardRequest;
 import com.flashcards.dto.response.CardResponse;
+import com.flashcards.dto.response.DueCardsSummaryResponse;
 import com.flashcards.exception.CardNotFoundException;
 import com.flashcards.exception.DeckNotFoundException;
 import com.flashcards.exception.UnauthorizedException;
@@ -18,7 +20,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -336,6 +342,54 @@ public class CardService {
     }
 
     /**
+     * Reorder cards in a deck
+     * Updates position of multiple cards based on new order
+     *
+     * @param user Authenticated user
+     * @param deckId Deck ID
+     * @param request Request with card IDs in new order
+     * @return List of updated cards
+     */
+    @Transactional
+    public List<CardResponse> reorderCards(User user, Long deckId, ReorderCardsRequest request) {
+        log.info("Reordering cards in deck {}: user={}, count={}", 
+                 deckId, user.getId(), request.getCardIds().size());
+
+        // Verify deck ownership
+        verifyDeckOwnership(user.getId(), deckId);
+
+        // Fetch all cards by IDs and verify they belong to the deck
+        List<Card> cards = cardRepository.findAllById(request.getCardIds());
+        
+        // Verify all cards belong to this deck
+        for (Card card : cards) {
+            if (!card.getDeckId().equals(deckId)) {
+                log.warn("Card {} does not belong to deck {}", card.getId(), deckId);
+                throw new UnauthorizedException();
+            }
+        }
+
+        // Update positions based on the order in cardIds list
+        for (int i = 0; i < request.getCardIds().size(); i++) {
+            Long cardId = request.getCardIds().get(i);
+            Card card = cards.stream()
+                    .filter(c -> c.getId().equals(cardId))
+                    .findFirst()
+                    .orElseThrow(() -> new CardNotFoundException(cardId));
+            
+            card.setPosition(i);
+        }
+
+        // Save all updated cards
+        List<Card> updatedCards = cardRepository.saveAll(cards);
+        log.info("Cards reordered successfully: deckId={}, count={}", deckId, updatedCards.size());
+
+        return updatedCards.stream()
+                .map(card -> toCardResponse(card, user))
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Internal method: Verify deck exists and user owns it
      */
     private Deck verifyDeckOwnership(Long userId, Long deckId) {
@@ -478,5 +532,71 @@ public class CardService {
         }
         
         return builder.build();
+    }
+
+    /**
+     * Get summary of due cards for the user
+     * Groups by deck and counts cards that are due for review
+     *
+     * @param user Authenticated user
+     * @return Summary with total due cards and breakdown by deck
+     */
+    @Transactional(readOnly = true)
+    public DueCardsSummaryResponse getDueCardsSummary(User user) {
+        log.info("Getting due cards summary for user: {}", user.getId());
+
+        LocalDateTime now = LocalDateTime.now();
+        
+        // Get all user's decks (soft-deleted automatically filtered by @Where clause)
+        List<Deck> userDecks = deckRepository.findAllByUserId(user.getId());
+        
+        List<DueCardsSummaryResponse.DeckDueInfo> decksDue = new ArrayList<>();
+        int totalDueCards = 0;
+
+        for (Deck deck : userDecks) {
+            // Get all cards in this deck (soft-deleted automatically filtered by @Where clause)
+            List<Card> deckCards = cardRepository.findAllByDeckIdOrderByPositionAsc(deck.getId());
+            
+            int deckDueCount = 0;
+            
+            for (Card card : deckCards) {
+                Optional<CardProgress> progressOpt = cardProgressRepository
+                        .findByUserIdAndCardId(user.getId(), card.getId());
+                
+                CardProgress progress = progressOpt.orElse(null);
+                
+                // Card is due if:
+                // 1. No progress (new card)
+                // 2. Progress exists and nextReview <= now
+                boolean isDue = progress == null || 
+                               (progress.getNextReview() != null && 
+                                !progress.getNextReview().isAfter(now));
+                
+                if (isDue) {
+                    deckDueCount++;
+                }
+            }
+            
+            if (deckDueCount > 0) {
+                decksDue.add(DueCardsSummaryResponse.DeckDueInfo.builder()
+                        .deckId(deck.getId())
+                        .deckTitle(deck.getTitle())
+                        .dueCount(deckDueCount)
+                        .build());
+                
+                totalDueCards += deckDueCount;
+            }
+        }
+        
+        // Sort by due count descending
+        decksDue.sort((a, b) -> b.getDueCount().compareTo(a.getDueCount()));
+        
+        log.info("User {} has {} total due cards across {} decks", 
+                 user.getId(), totalDueCards, decksDue.size());
+
+        return DueCardsSummaryResponse.builder()
+                .totalDueCards(totalDueCards)
+                .decksDue(decksDue)
+                .build();
     }
 }
