@@ -27,6 +27,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { TestHistoryModal } from "./TestHistoryModal";
 
 interface MasteryLevel {
   name: string;
@@ -47,6 +48,7 @@ export function StudyAnalytics({ deckId }: StudyAnalyticsProps) {
   const [statistics, setStatistics] = useState<StatisticsSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedMode, setSelectedMode] = useState<string>("all");
+  const [isTestHistoryOpen, setIsTestHistoryOpen] = useState(false);
 
   const formatRelativeTime = (dateTime: string | null): string => {
     if (!dateTime) return "Never";
@@ -448,7 +450,12 @@ export function StudyAnalytics({ deckId }: StudyAnalyticsProps) {
                 {/* Practice Tests */}
                 <div className="p-4 border rounded-lg">
                   <p className="text-sm text-muted-foreground mb-1">Practice Tests</p>
-                  <Button variant="link" className="p-0 h-auto text-2xl font-bold">
+                  <Button 
+                    variant="link" 
+                    className="p-0 h-auto text-2xl font-bold"
+                    onClick={() => setIsTestHistoryOpen(true)}
+                    disabled={!testDetail.testHistory || testDetail.testHistory === 0}
+                  >
                     {testDetail.testHistory || 0} tests
                   </Button>
                   <p className="text-xs text-muted-foreground mt-1">Click to view details</p>
@@ -573,6 +580,15 @@ export function StudyAnalytics({ deckId }: StudyAnalyticsProps) {
             )}
           </CardContent>
         </Card>
+      )}
+
+      {/* Test History Modal */}
+      {deckId && (
+        <TestHistoryModal
+          isOpen={isTestHistoryOpen}
+          onClose={() => setIsTestHistoryOpen(false)}
+          deckId={deckId}
+        />
       )}
     </div>
   );

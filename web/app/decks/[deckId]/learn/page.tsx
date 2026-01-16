@@ -223,7 +223,7 @@ export default function LearnModePage({ params }: PageProps) {
     setAnswers([...answers, result]);
 
     // Track card as studied
-    incrementCardsStudied();
+    incrementCardsStudied(currentQuestion.cardId);
 
     if (isCorrect) {
       toast.success("Chính xác! 🎉");
@@ -262,7 +262,7 @@ export default function LearnModePage({ params }: PageProps) {
     const currentQuestion = questions[currentIndex];
 
     // Track card as studied
-    incrementCardsStudied();
+    incrementCardsStudied(currentQuestion.cardId);
 
     const result: AnswerResult = {
       isCorrect: isCorrectAnswer,

@@ -44,11 +44,15 @@ com\flashcards\dto\request\CreateFolderRequest$CreateFolderRequestBuilder.class
 com\flashcards\dto\response\ModeStatisticsDetail$ModeStatisticsDetailBuilder.class
 com\flashcards\dto\response\AiCardResponse.class
 com\flashcards\dto\request\UpdateFolderRequest$UpdateFolderRequestBuilder.class
+com\flashcards\dto\response\TestResultResponse.class
 com\flashcards\service\ReviewService$1.class
 com\flashcards\dto\response\AuthResponse.class
+com\flashcards\dto\response\TestResultResponse$TestResultResponseBuilder.class
 com\flashcards\dto\request\LoginRequest$LoginRequestBuilder.class
 com\flashcards\dto\response\ErrorResponse.class
 com\flashcards\dto\request\UpdateCardRequest.class
+com\flashcards\repository\TestResultRepository.class
+com\flashcards\model\entity\TestResult.class
 com\flashcards\dto\response\ReviewResponse$ReviewResponseBuilder.class
 com\flashcards\dto\statistics\StatisticsSummaryDTO.class
 com\flashcards\dto\request\BulkCreateCardsRequest.class
@@ -62,6 +66,7 @@ com\flashcards\model\entity\StudySession$StudySessionBuilder.class
 com\flashcards\repository\UserRepository.class
 com\flashcards\dto\ReviewResponse$ReviewResponseBuilder.class
 com\flashcards\validation\HtmlNotBlank.class
+com\flashcards\dto\request\CreateTestResultRequest$CreateTestResultRequestBuilder.class
 com\flashcards\dto\response\ErrorResponse$ErrorResponseBuilder.class
 com\flashcards\model\entity\Deck.class
 com\flashcards\controller\CardController.class
@@ -72,10 +77,13 @@ com\flashcards\model\entity\Card$CardBuilder.class
 com\flashcards\service\SearchService.class
 com\flashcards\enums\ReviewGrade.class
 com\flashcards\controller\DeckController.class
+com\flashcards\dto\request\CreateTestResultRequest.class
 com\flashcards\dto\response\DeckResponse.class
+com\flashcards\model\entity\TestResult$TestResultBuilder.class
 com\flashcards\model\enums\SourceType.class
 com\flashcards\dto\request\AiGenerateRequest$AiGenerateRequestBuilder.class
 com\flashcards\service\FolderService.class
+com\flashcards\controller\TestResultController.class
 com\flashcards\dto\request\UpdateDeckRequest$UpdateDeckRequestBuilder.class
 com\flashcards\repository\StudyLogRepository.class
 com\flashcards\model\entity\Deck$DeckBuilder.class
@@ -116,6 +124,7 @@ com\flashcards\dto\request\CreateDeckRequest.class
 com\flashcards\dto\response\MasteryLevelStatistics.class
 com\flashcards\dto\response\StudySessionResponse.class
 com\flashcards\service\StudySessionService.class
+com\flashcards\service\TestResultService.class
 com\flashcards\repository\CardProgressRepository.class
 com\flashcards\dto\request\UpdateCardRequest$UpdateCardRequestBuilder.class
 com\flashcards\model\entity\CardProgress.class

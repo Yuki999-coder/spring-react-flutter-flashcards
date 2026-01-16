@@ -5,6 +5,7 @@ import com.flashcards.model.entity.StudySession;
 import com.flashcards.model.entity.User;
 import com.flashcards.model.enums.StudyMode;
 import com.flashcards.repository.StudySessionRepository;
+import com.flashcards.repository.TestResultRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,7 @@ import java.util.Optional;
 public class StudySessionService {
 
     private final StudySessionRepository studySessionRepository;
+    private final TestResultRepository testResultRepository;
 
     /**
      * Create a new study session
@@ -182,10 +184,10 @@ public class StudySessionService {
         LocalDateTime lastSubmission = null;
         
         if (mode == StudyMode.TEST) {
-            testHistory = sessions.size();
+            // Get test results for this deck
+            averageGrade = testResultRepository.getAverageScoreByUserIdAndDeckId(userId, deckId);
+            testHistory = testResultRepository.countByUserIdAndDeckId(userId, deckId).intValue();
             lastSubmission = lastSession.getEndTime();
-            // TODO: Implement grade tracking in future
-            averageGrade = null;
         }
 
         return ModeStatisticsDetail.builder()

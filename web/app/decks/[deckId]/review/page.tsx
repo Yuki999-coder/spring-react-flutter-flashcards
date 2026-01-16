@@ -162,7 +162,7 @@ export default function ReviewPage({ params }: PageProps) {
       await api.post(`/cards/${currentCard.id}/review`, { grade });
 
       // Track card review
-      incrementCardsStudied();
+      incrementCardsStudied(currentCard.id);
 
       // Remove card from due list and move to next
       const newDueCards = dueCards.filter((_, index) => index !== currentIndex);

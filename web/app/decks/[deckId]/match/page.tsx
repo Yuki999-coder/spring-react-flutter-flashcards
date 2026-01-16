@@ -182,8 +182,8 @@ export default function MatchGamePage({ params }: PageProps) {
         setSelectedPieces([]);
         setIsChecking(false);
 
-        // Track card as studied
-        incrementCardsStudied();
+        // Track card as studied (use cardId for unique tracking)
+        incrementCardsStudied(piece1.cardId);
 
         // Check if game complete
         const newMatchedCount = matchedPieceIds.size + 2;

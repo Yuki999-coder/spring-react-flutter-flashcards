@@ -22,7 +22,7 @@ export function useStudyTimer({
   const [isTracking, setIsTracking] = useState(false);
   const startTimeRef = useRef<Date | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const cardsStudiedRef = useRef<number>(0);
+  const cardIdsStudiedRef = useRef<Set<number>>(new Set());
 
   // Start tracking
   useEffect(() => {
@@ -74,10 +74,10 @@ export function useStudyTimer({
         mode,
         startTime: startTimeRef.current.toISOString(),
         endTime: endTime.toISOString(),
-        cardsStudied: cardsStudiedRef.current > 0 ? cardsStudiedRef.current : null,
+        cardsStudied: cardIdsStudiedRef.current.size > 0 ? cardIdsStudiedRef.current.size : null,
       });
 
-      console.log(`Study session saved: ${durationSeconds}s in ${mode} mode`);
+      console.log(`Study session saved: ${durationSeconds}s in ${mode} mode, ${cardIdsStudiedRef.current.size} unique cards`);
       onSessionSaved?.();
     } catch (error: any) {
       console.error("Failed to save study session:", error);
@@ -85,8 +85,10 @@ export function useStudyTimer({
     }
   };
 
-  const incrementCardsStudied = () => {
-    cardsStudiedRef.current += 1;
+  const incrementCardsStudied = (cardId?: number) => {
+    if (cardId !== undefined) {
+      cardIdsStudiedRef.current.add(cardId);
+    }
   };
 
   const stopTracking = async () => {
@@ -117,6 +119,6 @@ export function useStudyTimer({
     formattedTime: formatTime(elapsedSeconds),
     incrementCardsStudied,
     stopTracking,
-    cardsStudied: cardsStudiedRef.current,
+    cardsStudied: cardIdsStudiedRef.current.size,
   };
 }

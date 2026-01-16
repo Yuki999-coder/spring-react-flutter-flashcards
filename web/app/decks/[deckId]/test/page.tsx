@@ -154,13 +154,35 @@ export default function TestPage() {
 
     const testResult = gradeTest(answeredQuestions, enableSmartGrading);
     
-    // Track all cards as studied
-    answeredQuestions.forEach(() => {
-      incrementCardsStudied();
+    // Track all unique cards as studied
+    answeredQuestions.forEach((q) => {
+      if (q.cardId) {
+        incrementCardsStudied(q.cardId);
+      }
     });
 
     // Save study session immediately when test is submitted
     await stopTracking();
+
+    // Save test result to backend
+    try {
+      const wrongCount = testResult.totalQuestions - testResult.correctAnswers;
+      const skippedCount = answeredQuestions.filter(q => q.userAnswer === undefined || q.userAnswer === null || q.userAnswer === '').length;
+      
+      await api.post("/test-results", {
+        deckId: deckId,
+        score: testResult.score,
+        correctCount: testResult.correctAnswers,
+        wrongCount: wrongCount,
+        skippedCount: skippedCount,
+        totalQuestions: testResult.totalQuestions,
+        durationSeconds: elapsedSeconds,
+      });
+      console.log("Test result saved successfully");
+    } catch (error) {
+      console.error("Failed to save test result:", error);
+      // Continue anyway, don't block user
+    }
 
     setResult(testResult);
     setPhase("RESULT");
