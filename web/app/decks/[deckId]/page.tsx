@@ -48,6 +48,15 @@ export default function DeckDetailPage({ params }: PageProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [aiDialogOpen, setAiDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("cards");
+  
+  // Mastery filter states
+  const [masteryStats, setMasteryStats] = useState<{
+    newCards: number;
+    stillLearning: number;
+    almostDone: number;
+    mastered: number;
+  } | null>(null);
+  const [selectedFilter, setSelectedFilter] = useState<"all" | "new" | "learning" | "almost" | "mastered">("all");
 
   useEffect(() => {
     const initPage = async () => {
@@ -74,10 +83,11 @@ export default function DeckDetailPage({ params }: PageProps) {
 
     setIsLoading(true);
     try {
-      const [deckResponse, cardsResponse, difficultCountResponse] = await Promise.all([
+      const [deckResponse, cardsResponse, difficultCountResponse, masteryResponse] = await Promise.all([
         api.get(`/decks/${deckId}`),
         api.get(`/decks/${deckId}/cards`),
         api.get(`/decks/${deckId}/cards/difficult/count`),
+        api.get(`/statistics/summary/enhanced?deckId=${deckId}`),
       ]);
 
       const starredData = cardsResponse.data.map((c: any) => ({ 
@@ -91,6 +101,15 @@ export default function DeckDetailPage({ params }: PageProps) {
       setDeck(deckResponse.data);
       setCards(cardsResponse.data);
       setDifficultCount(difficultCountResponse.data);
+      
+      // Set mastery stats
+      const mastery = masteryResponse.data.masteryLevels;
+      setMasteryStats({
+        newCards: mastery.newCards || 0,
+        stillLearning: mastery.stillLearning || 0,
+        almostDone: mastery.almostDone || 0,
+        mastered: mastery.mastered || 0,
+      });
     } catch (error: any) {
       if (error.response?.status === 404) {
         toast.error("Không tìm thấy bộ thẻ");
@@ -129,6 +148,39 @@ export default function DeckDetailPage({ params }: PageProps) {
     if (!deck || difficultCount === 0) return;
     router.push(`/decks/${deckId}/review?mode=difficult`);
   };
+
+  // Helper function to get mastery level of a card
+  const getCardMasteryLevel = (card: Card): "new" | "learning" | "almost" | "mastered" => {
+    if (!card.learningState || card.learningState === "NEW") {
+      return "new";
+    }
+    
+    if (card.learningState === "LEARNING_MCQ" || 
+        card.learningState === "LEARNING_TYPING" || 
+        card.learningState === "RELEARNING") {
+      return "learning";
+    }
+    
+    if (card.learningState === "REVIEWING" && card.nextReview) {
+      const nextReviewDate = new Date(card.nextReview);
+      const now = new Date();
+      const daysUntilReview = Math.floor((nextReviewDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (daysUntilReview >= 21) {
+        return "mastered";
+      } else {
+        return "almost";
+      }
+    }
+    
+    return "new";
+  };
+
+  // Filter cards based on selected filter
+  const filteredCards = cards.filter((card) => {
+    if (selectedFilter === "all") return true;
+    return getCardMasteryLevel(card) === selectedFilter;
+  });
 
   if (!deckId) {
     return null;
@@ -347,8 +399,57 @@ export default function DeckDetailPage({ params }: PageProps) {
             </div>
           </div>
 
+          {/* Mastery Level Filter Buttons */}
+          {masteryStats && (
+            <div className="flex flex-wrap gap-2 mb-4">
+              <Button
+                variant={selectedFilter === "all" ? "default" : "outline"}
+                onClick={() => setSelectedFilter("all")}
+                size="sm"
+              >
+                📚 All Cards ({cards.length})
+              </Button>
+              {masteryStats.newCards > 0 && (
+                <Button
+                  variant={selectedFilter === "new" ? "default" : "outline"}
+                  onClick={() => setSelectedFilter("new")}
+                  size="sm"
+                >
+                  ⭐ New Cards ({masteryStats.newCards})
+                </Button>
+              )}
+              {masteryStats.stillLearning > 0 && (
+                <Button
+                  variant={selectedFilter === "learning" ? "default" : "outline"}
+                  onClick={() => setSelectedFilter("learning")}
+                  size="sm"
+                >
+                  🧠 Still Learning ({masteryStats.stillLearning})
+                </Button>
+              )}
+              {masteryStats.almostDone > 0 && (
+                <Button
+                  variant={selectedFilter === "almost" ? "default" : "outline"}
+                  onClick={() => setSelectedFilter("almost")}
+                  size="sm"
+                >
+                  🎯 Almost Done ({masteryStats.almostDone})
+                </Button>
+              )}
+              {masteryStats.mastered > 0 && (
+                <Button
+                  variant={selectedFilter === "mastered" ? "default" : "outline"}
+                  onClick={() => setSelectedFilter("mastered")}
+                  size="sm"
+                >
+                  ✅ Mastered ({masteryStats.mastered})
+                </Button>
+              )}
+            </div>
+          )}
+
           <CardList
-            cards={cards}
+            cards={filteredCards}
             isLoading={isLoading}
             onCardDeleted={fetchData}
             onCardUpdated={fetchData}
