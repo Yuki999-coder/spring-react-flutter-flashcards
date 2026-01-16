@@ -9,6 +9,7 @@ export interface Folder {
   decks?: Deck[];
   createdAt: string;
   updatedAt: string;
+  lastViewedAt: string | null;
 }
 
 export interface CreateFolderRequest {

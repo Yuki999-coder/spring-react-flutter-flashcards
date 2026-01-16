@@ -8,6 +8,7 @@ export interface Deck {
   cardCount?: number;
   createdAt: string;
   updatedAt: string;
+  lastViewedAt: string | null;
 }
 
 export interface CreateDeckRequest {

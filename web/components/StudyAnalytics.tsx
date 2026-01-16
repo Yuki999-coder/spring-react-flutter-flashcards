@@ -118,6 +118,20 @@ export function StudyAnalytics({ deckId }: StudyAnalyticsProps) {
     fetchStatistics();
   }, [deckId]);
 
+  // Refetch when page becomes visible (user returns from study session)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchStatistics();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [deckId]);
+
   const fetchStatistics = async () => {
     setIsLoading(true);
     try {

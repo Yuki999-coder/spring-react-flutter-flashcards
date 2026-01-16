@@ -3,10 +3,12 @@ package com.flashcards.repository;
 import com.flashcards.model.entity.Deck;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -93,4 +95,21 @@ public interface DeckRepository extends JpaRepository<Deck, Long> {
            "OR LOWER(d.description) LIKE LOWER(CONCAT('%', :searchTerm, '%')))")
     long countSearchDecks(@Param("userId") Long userId, 
                           @Param("searchTerm") String searchTerm);
+    
+    /**
+     * Update last viewed timestamp without triggering updatedAt
+     * Uses native query to avoid Hibernate's @UpdateTimestamp
+     *
+     * @param id Deck ID
+     * @param userId User ID (for security)
+     * @param lastViewedAt Timestamp to set
+     * @return Number of rows updated (should be 1 if successful)
+     */
+    @Modifying
+    @Query(value = "UPDATE decks SET last_viewed_at = :lastViewedAt " +
+                   "WHERE id = :id AND user_id = :userId AND is_deleted = false", 
+           nativeQuery = true)
+    int updateLastViewedAt(@Param("id") Long id, 
+                           @Param("userId") Long userId, 
+                           @Param("lastViewedAt") LocalDateTime lastViewedAt);
 }

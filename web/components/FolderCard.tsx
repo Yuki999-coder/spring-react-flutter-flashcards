@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Folder, MoreVertical, Trash2, Edit, BookOpen } from "lucide-react";
+import { Folder, MoreVertical, Trash2, Edit, BookOpen, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/axios";
 import { Folder as FolderType } from "@/types/folder";
@@ -39,6 +39,27 @@ interface FolderCardProps {
   onUpdated: () => void;
 }
 
+const formatRelativeTime = (dateTime: string | null): string => {
+  if (!dateTime) return "Never";
+  
+  const now = new Date();
+  const then = new Date(dateTime);
+  const seconds = Math.floor((now.getTime() - then.getTime()) / 1000);
+  
+  if (seconds < 60) {
+    return `${seconds}s ago`;
+  } else if (seconds < 3600) {
+    const minutes = Math.floor(seconds / 60);
+    return `${minutes}m ago`;
+  } else if (seconds < 86400) {
+    const hours = Math.floor(seconds / 3600);
+    return `${hours}h ago`;
+  } else {
+    const days = Math.floor(seconds / 86400);
+    return `${days}d ago`;
+  }
+};
+
 export function FolderCard({ folder, onDeleted, onUpdated }: FolderCardProps) {
   const router = useRouter();
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
@@ -60,11 +81,19 @@ export function FolderCard({ folder, onDeleted, onUpdated }: FolderCardProps) {
     }
   };
 
-  const handleCardClick = (e: React.MouseEvent) => {
+  const handleCardClick = async (e: React.MouseEvent) => {
     // Don't navigate if clicking on dropdown menu
     if ((e.target as HTMLElement).closest('[role="menu"]')) {
       return;
     }
+    
+    // Update last viewed timestamp
+    try {
+      await api.post(`/folders/${folder.id}/view`);
+    } catch (error) {
+      console.error("Failed to update last viewed:", error);
+    }
+    
     router.push(`/folders/${folder.id}`);
   };
 
@@ -84,6 +113,12 @@ export function FolderCard({ folder, onDeleted, onUpdated }: FolderCardProps) {
               <CardDescription className="text-sm truncate">
                 {folder.deckCount} bộ thẻ
               </CardDescription>
+              {folder.lastViewedAt && (
+                <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                  <Clock className="h-3 w-3" />
+                  <span>Viewed {formatRelativeTime(folder.lastViewedAt)}</span>
+                </div>
+              )}
             </div>
           </div>
 

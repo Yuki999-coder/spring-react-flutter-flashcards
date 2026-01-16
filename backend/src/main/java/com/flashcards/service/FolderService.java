@@ -173,6 +173,29 @@ public class FolderService {
     }
     
     /**
+     * Update folder last viewed timestamp
+     * Uses native query to avoid triggering @UpdateTimestamp on updatedAt
+     */
+    @Transactional
+    public void updateLastViewed(User user, Long folderId) {
+        log.info("Updating folder last viewed: folderId={}, userId={}", folderId, user.getId());
+        
+        // Use native query to update only last_viewed_at without triggering updated_at
+        int rowsUpdated = folderRepository.updateLastViewedAt(
+            folderId, 
+            user.getId(), 
+            java.time.LocalDateTime.now()
+        );
+        
+        if (rowsUpdated == 0) {
+            log.warn("Failed to update last viewed: folderId={}, userId={}", folderId, user.getId());
+            throw new FolderNotFoundException("Folder not found or access denied");
+        }
+        
+        log.debug("Folder last viewed updated: folderId={}", folderId);
+    }
+    
+    /**
      * Verify folder ownership
      */
     private Folder verifyFolderOwnership(Long userId, Long folderId) {
@@ -190,7 +213,8 @@ public class FolderService {
                 .description(folder.getDescription())
                 .userId(folder.getUserId())
                 .createdAt(folder.getCreatedAt())
-                .updatedAt(folder.getUpdatedAt());
+                .updatedAt(folder.getUpdatedAt())
+                .lastViewedAt(folder.getLastViewedAt());
         
         // Count decks in folder
         List<Deck> decksInFolder = deckRepository.findByFolderIdAndUserId(folder.getId(), folder.getUserId());

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { BookOpen, MoreVertical, Pencil, Trash, FolderInput } from "lucide-react";
+import { BookOpen, MoreVertical, Pencil, Trash, FolderInput, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/axios";
 import { Button } from "@/components/ui/button";
@@ -42,6 +42,27 @@ interface DeckCardProps {
   onMoved?: () => void;
 }
 
+const formatRelativeTime = (dateTime: string | null): string => {
+  if (!dateTime) return "Never";
+  
+  const now = new Date();
+  const then = new Date(dateTime);
+  const seconds = Math.floor((now.getTime() - then.getTime()) / 1000);
+  
+  if (seconds < 60) {
+    return `${seconds}s ago`;
+  } else if (seconds < 3600) {
+    const minutes = Math.floor(seconds / 60);
+    return `${minutes}m ago`;
+  } else if (seconds < 86400) {
+    const hours = Math.floor(seconds / 3600);
+    return `${hours}h ago`;
+  } else {
+    const days = Math.floor(seconds / 86400);
+    return `${days}d ago`;
+  }
+};
+
 export function DeckCard({ deck, onDeleted, onUpdated, onMoved }: DeckCardProps) {
   const router = useRouter();
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -59,12 +80,20 @@ export function DeckCard({ deck, onDeleted, onUpdated, onMoved }: DeckCardProps)
       : text;
   };
 
-  const handleCardClick = (e: React.MouseEvent) => {
+  const handleCardClick = async (e: React.MouseEvent) => {
     // Không navigate khi click vào dropdown menu
     const target = e.target as HTMLElement;
     if (target.closest("[data-dropdown-trigger]")) {
       return;
     }
+    
+    // Update last viewed timestamp
+    try {
+      await api.post(`/decks/${deck.id}/view`);
+    } catch (error) {
+      console.error("Failed to update last viewed:", error);
+    }
+    
     router.push(`/decks/${deck.id}`);
   };
 
@@ -151,6 +180,20 @@ export function DeckCard({ deck, onDeleted, onUpdated, onMoved }: DeckCardProps)
           <div className="flex items-center gap-2 text-sm text-muted-foreground bg-primary/5 rounded-lg px-3 py-2 border border-primary/10">
             <BookOpen className="h-4 w-4 text-primary" />
             <span className="font-medium">{deck.cardCount ?? 0} thẻ</span>
+          </div>
+          <div className="space-y-1 mt-2">
+            {deck.lastViewedAt && (
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Clock className="h-3 w-3" />
+                <span>Viewed {formatRelativeTime(deck.lastViewedAt)}</span>
+              </div>
+            )}
+            {deck.updatedAt && (
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Clock className="h-3 w-3" />
+                <span>Cập nhật {formatRelativeTime(deck.updatedAt)}</span>
+              </div>
+            )}
           </div>
         </CardContent>
         <CardFooter className="pt-0">

@@ -154,6 +154,29 @@ public class DeckService {
     }
 
     /**
+     * Update deck last viewed timestamp
+     * Uses native query to avoid triggering @UpdateTimestamp on updatedAt
+     */
+    @Transactional
+    public void updateLastViewed(User user, Long deckId) {
+        log.info("Updating deck last viewed: deckId={}, userId={}", deckId, user.getId());
+        
+        // Use native query to update only last_viewed_at without triggering updated_at
+        int rowsUpdated = deckRepository.updateLastViewedAt(
+            deckId, 
+            user.getId(), 
+            java.time.LocalDateTime.now()
+        );
+        
+        if (rowsUpdated == 0) {
+            log.warn("Failed to update last viewed: deckId={}, userId={}", deckId, user.getId());
+            throw new com.flashcards.exception.DeckNotFoundException(deckId);
+        }
+        
+        log.debug("Deck last viewed updated: deckId={}", deckId);
+    }
+
+    /**
      * Internal method: Get deck and verify ownership
      * Throws exceptions if not found or unauthorized
      */
@@ -193,6 +216,7 @@ public class DeckService {
                 .cardCount((int) cardCount)
                 .createdAt(deck.getCreatedAt())
                 .updatedAt(deck.getUpdatedAt())
+                .lastViewedAt(deck.getLastViewedAt())
                 .build();
     }
 }

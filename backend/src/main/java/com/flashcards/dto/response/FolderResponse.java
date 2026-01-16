@@ -23,6 +23,7 @@ public class FolderResponse {
     private Long userId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private LocalDateTime lastViewedAt;
     
     // Count of decks in this folder
     private Integer deckCount;

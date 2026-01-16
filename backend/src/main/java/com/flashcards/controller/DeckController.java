@@ -286,6 +286,22 @@ public class DeckController {
     }
 
     /**
+     * Update deck last viewed timestamp
+     * POST /api/v1/decks/{id}/view
+     */
+    @PostMapping("/{id}/view")
+    public ResponseEntity<Void> updateDeckLastViewed(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long id) {
+        User user = getCurrentUser(userDetails);
+        log.info("POST /api/v1/decks/{}/view - Updating last viewed: user={}", id, user.getId());
+        
+        deckService.updateLastViewed(user, id);
+        
+        return ResponseEntity.ok().build();
+    }
+
+    /**
      * Get current authenticated user from UserDetails
      *
      * @param userDetails Authenticated user details from JWT

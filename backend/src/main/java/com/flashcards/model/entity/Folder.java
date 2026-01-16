@@ -44,6 +44,9 @@ public class Folder {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
     
+    @Column(name = "last_viewed_at")
+    private LocalDateTime lastViewedAt;
+    
     @Column(name = "is_deleted", nullable = false)
     @Builder.Default
     private Boolean isDeleted = false;

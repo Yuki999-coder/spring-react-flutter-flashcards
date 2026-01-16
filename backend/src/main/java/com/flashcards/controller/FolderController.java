@@ -151,6 +151,22 @@ public class FolderController {
     }
     
     /**
+     * Update folder last viewed timestamp
+     * POST /api/v1/folders/{id}/view
+     */
+    @PostMapping("/{id}/view")
+    public ResponseEntity<Void> updateFolderLastViewed(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long id) {
+        User user = getCurrentUser(userDetails);
+        log.info("POST /api/v1/folders/{}/view - Updating last viewed: user={}", id, user.getId());
+        
+        folderService.updateLastViewed(user, id);
+        
+        return ResponseEntity.ok().build();
+    }
+    
+    /**
      * Get uncategorized decks (not in any folder)
      * GET /api/v1/folders/uncategorized
      */

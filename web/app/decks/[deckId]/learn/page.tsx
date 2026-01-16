@@ -72,9 +72,13 @@ export default function LearnModePage({ params }: PageProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [hasStarted, setHasStarted] = useState(false);
   const [selectedMode, setSelectedMode] = useState<
-    "MCQ" | "WRITTEN" | "MIXED" | null
+    "MCQ" | "WRITTEN" | "MIXED" | "FLASHCARD" | null
   >(null);
   const [isComplete, setIsComplete] = useState(false);
+  
+  // Flashcard mode states
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [flashcardAnswers, setFlashcardAnswers] = useState<{ cardId: number; known: boolean }[]>([]);
   
   // Cram mode (review wrong cards from test)
   const [isCramMode, setIsCramMode] = useState(false);
@@ -182,7 +186,17 @@ export default function LearnModePage({ params }: PageProps) {
     }
   };
 
-  const startMode = (mode: "MCQ" | "WRITTEN" | "MIXED") => {
+  const startMode = (mode: "MCQ" | "WRITTEN" | "MIXED" | "FLASHCARD") => {
+    if (mode === "FLASHCARD") {
+      // Flashcard mode doesn't need questions generation
+      setSelectedMode(mode);
+      setHasStarted(true);
+      setCurrentIndex(0);
+      setIsFlipped(false);
+      setFlashcardAnswers([]);
+      return;
+    }
+
     let generatedQuestions: Question[];
 
     if (mode === "MCQ") {
@@ -299,6 +313,31 @@ export default function LearnModePage({ params }: PageProps) {
     }
   };
 
+  // Flashcard mode handlers
+  const handleFlipCard = () => {
+    setIsFlipped(!isFlipped);
+  };
+
+  const handleFlashcardAnswer = async (known: boolean) => {
+    const currentCard = cards[currentIndex];
+    
+    // Track card as studied
+    incrementCardsStudied(currentCard.id);
+    
+    // Save answer
+    setFlashcardAnswers([...flashcardAnswers, { cardId: currentCard.id, known }]);
+    
+    // Move to next card or complete
+    if (currentIndex < cards.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+      setIsFlipped(false);
+    } else {
+      setIsComplete(true);
+      await stopTracking(); // Save study session
+      triggerConfetti();
+    }
+  };
+
   const triggerConfetti = () => {
     const duration = 3000;
     const end = Date.now() + duration;
@@ -383,7 +422,7 @@ export default function LearnModePage({ params }: PageProps) {
               )}
             </div>
 
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-4 gap-6">
               {/* MCQ Mode */}
               <UICard
                 className="cursor-pointer hover:shadow-xl transition-all hover:border-primary"
@@ -467,7 +506,33 @@ export default function LearnModePage({ params }: PageProps) {
                   </Button>
                 </CardFooter>
               </UICard>
-            </div>
+              {/* FLASHCARD Mode */}
+              <UICard
+                className="cursor-pointer hover:shadow-xl transition-all hover:border-primary"
+                onClick={() => startMode("FLASHCARD")}
+              >
+                <CardHeader className="text-center">
+                  <div className="flex justify-center mb-4">
+                    <div className="p-4 bg-amber-100 dark:bg-amber-950 rounded-full">
+                      <BookOpen className="h-12 w-12 text-amber-600 dark:text-amber-400" />
+                    </div>
+                  </div>
+                  <CardTitle>Lật thẻ</CardTitle>
+                  <CardDescription>Flashcard Review</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2 text-sm text-muted-foreground">
+                    <li>✓ Lật thẻ để xem đáp án</li>
+                    <li>✓ Đánh giá mức độ nhớ</li>
+                    <li>✓ Ôn tập trực quan</li>
+                  </ul>
+                </CardContent>
+                <CardFooter>
+                  <Button className="w-full" variant="outline">
+                    Bắt đầu
+                  </Button>
+                </CardFooter>
+              </UICard>            </div>
           </div>
         </main>
       </div>
@@ -476,9 +541,21 @@ export default function LearnModePage({ params }: PageProps) {
 
   // Completion screen
   if (isComplete) {
-    const correctCount = answers.filter((a) => a.isCorrect).length;
-    const totalCount = answers.length;
-    const score = calculateScore(correctCount, totalCount);
+    let correctCount = 0;
+    let totalCount = 0;
+    let score = 0;
+
+    if (selectedMode === "FLASHCARD") {
+      // For flashcard mode
+      correctCount = flashcardAnswers.filter((a) => a.known).length;
+      totalCount = flashcardAnswers.length;
+      score = calculateScore(correctCount, totalCount);
+    } else {
+      // For MCQ/WRITTEN/MIXED modes
+      correctCount = answers.filter((a) => a.isCorrect).length;
+      totalCount = answers.length;
+      score = calculateScore(correctCount, totalCount);
+    }
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -546,7 +623,138 @@ export default function LearnModePage({ params }: PageProps) {
     );
   }
 
-  // Main learning screen
+  // Flashcard mode screen
+  if (selectedMode === "FLASHCARD") {
+    const currentCard = cards[currentIndex];
+    const progress = ((currentIndex + 1) / cards.length) * 100;
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-10">
+          <div className="container mx-auto px-4 py-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.push(`/decks/${deckId}`)}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Quay lại
+            </Button>
+            <div className="mt-4">
+              <div className="flex items-center justify-between mb-2">
+                <h1 className="text-2xl font-bold">Lật thẻ</h1>
+                <Badge variant="secondary">
+                  {currentIndex + 1} / {cards.length}
+                </Badge>
+              </div>
+              <Progress value={progress} className="h-2" />
+            </div>
+          </div>
+        </header>
+
+        <main className="container mx-auto px-4 py-8">
+          <div className="max-w-2xl mx-auto">
+            {/* Flashcard */}
+            <div 
+              className={`relative w-full h-96 cursor-pointer transition-all duration-500 transform-gpu ${
+                isFlipped ? '[transform:rotateY(180deg)]' : ''
+              }`}
+              style={{ transformStyle: 'preserve-3d' }}
+              onClick={handleFlipCard}
+            >
+              {/* Front side - Term */}
+              <UICard 
+                className={`absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-2xl ${
+                  isFlipped ? 'invisible' : 'visible'
+                }`}
+                style={{ backfaceVisibility: 'hidden' }}
+              >
+                <CardContent className="p-8 text-center">
+                  {currentCard.imageUrl && (
+                    <div className="relative w-full h-32 mb-6 rounded-lg overflow-hidden">
+                      <Image
+                        src={currentCard.imageUrl}
+                        alt={currentCard.term}
+                        fill
+                        className="object-contain"
+                      />
+                    </div>
+                  )}
+                  <div 
+                    className="text-4xl font-bold mb-2 prose prose-invert max-w-none"
+                    dangerouslySetInnerHTML={{ __html: currentCard.term }}
+                  />
+                  <p className="text-blue-100 text-sm mt-4">Click để lật thẻ</p>
+                </CardContent>
+              </UICard>
+
+              {/* Back side - Definition */}
+              <UICard 
+                className={`absolute inset-0 flex items-center justify-center bg-gradient-to-br from-green-500 to-teal-600 text-white shadow-2xl ${
+                  !isFlipped ? 'invisible' : 'visible'
+                }`}
+                style={{ 
+                  backfaceVisibility: 'hidden',
+                  transform: 'rotateY(180deg)'
+                }}
+              >
+                <CardContent className="p-8 text-center">
+                  <div 
+                    className="text-3xl font-semibold mb-4 prose prose-invert max-w-none"
+                    dangerouslySetInnerHTML={{ __html: currentCard.definition }}
+                  />
+                  {currentCard.example && (
+                    <div 
+                      className="text-sm text-green-100 italic mt-4 prose prose-sm prose-invert max-w-none"
+                      dangerouslySetInnerHTML={{ __html: `Ví dụ: ${currentCard.example}` }}
+                    />
+                  )}
+                  <p className="text-green-100 text-sm mt-6">Click để lật lại</p>
+                </CardContent>
+              </UICard>
+            </div>
+
+            {/* Action buttons - Only show when flipped */}
+            {isFlipped && (
+              <div className="mt-8 flex gap-4">
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleFlashcardAnswer(false);
+                  }}
+                  variant="outline"
+                  size="lg"
+                  className="flex-1 border-2 border-red-500 text-red-600 hover:bg-red-50"
+                >
+                  <XCircle className="mr-2 h-5 w-5" />
+                  Chưa nhớ
+                </Button>
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleFlashcardAnswer(true);
+                  }}
+                  variant="outline"
+                  size="lg"
+                  className="flex-1 border-2 border-green-500 text-green-600 hover:bg-green-50"
+                >
+                  <CheckCircle2 className="mr-2 h-5 w-5" />
+                  Đã nhớ
+                </Button>
+              </div>
+            )}
+
+            {/* Stats */}
+            <div className="mt-6 text-center text-sm text-muted-foreground">
+              <p>Đã nhớ: {flashcardAnswers.filter(a => a.known).length} / {flashcardAnswers.length}</p>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Main learning screen (MCQ/WRITTEN/MIXED)
   const currentQuestion = questions[currentIndex];
   const progress = ((currentIndex + 1) / questions.length) * 100;
 

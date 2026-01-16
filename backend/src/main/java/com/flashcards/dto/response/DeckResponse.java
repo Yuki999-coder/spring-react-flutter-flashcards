@@ -27,4 +27,5 @@ public class DeckResponse {
     private Integer cardCount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private LocalDateTime lastViewedAt;
 }
