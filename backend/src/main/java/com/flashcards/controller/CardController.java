@@ -20,6 +20,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Card Controller
@@ -47,7 +48,7 @@ public class CardController {
     @PostMapping("/decks/{deckId}/cards")
     public ResponseEntity<CardResponse> addCardToDeck(
             @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long deckId,
+            @PathVariable UUID deckId,
             @Valid @RequestBody CreateCardRequest request) {
         
         User user = getCurrentUser(userDetails);
@@ -55,7 +56,7 @@ public class CardController {
                  deckId, user.getId(), request.getTerm());
 
         // Set deckId from path parameter
-        request.setDeckId(deckId);
+        request.setDeckId(deckId.toString());
 
         CardResponse response = cardService.addCardToDeck(user, request);
 
@@ -74,7 +75,7 @@ public class CardController {
     @PostMapping("/decks/{deckId}/cards/bulk")
     public ResponseEntity<List<CardResponse>> bulkAddCardsToDeck(
             @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long deckId,
+            @PathVariable UUID deckId,
             @RequestBody List<CreateCardRequest> requests) {
         
         User user = getCurrentUser(userDetails);
@@ -90,7 +91,7 @@ public class CardController {
                  requests.get(0).getTerm(), requests.get(0).getDefinition());
 
         // Set deckId for all requests
-        requests.forEach(request -> request.setDeckId(deckId));
+        requests.forEach(request -> request.setDeckId(deckId.toString()));
 
         List<CardResponse> responses = cardService.bulkAddCardsToDeck(user, requests);
 
@@ -108,7 +109,7 @@ public class CardController {
     @GetMapping("/decks/{deckId}/cards")
     public ResponseEntity<List<CardResponse>> getCardsByDeck(
             @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long deckId) {
+            @PathVariable UUID deckId) {
         
         User user = getCurrentUser(userDetails);
         log.info("GET /api/v1/decks/{}/cards - userId: {}", deckId, user.getId());
@@ -129,7 +130,7 @@ public class CardController {
     @GetMapping("/cards/{id}")
     public ResponseEntity<CardResponse> getCardById(
             @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long id) {
+            @PathVariable UUID id) {
         
         User user = getCurrentUser(userDetails);
         log.info("GET /api/v1/cards/{} - userId: {}", id, user.getId());
@@ -151,7 +152,7 @@ public class CardController {
     @PutMapping("/cards/{id}")
     public ResponseEntity<CardResponse> updateCard(
             @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long id,
+            @PathVariable UUID id,
             @Valid @RequestBody UpdateCardRequest request) {
         
         User user = getCurrentUser(userDetails);
@@ -175,7 +176,7 @@ public class CardController {
     @PutMapping("/decks/{deckId}/cards/reorder")
     public ResponseEntity<List<CardResponse>> reorderCards(
             @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long deckId,
+            @PathVariable UUID deckId,
             @Valid @RequestBody ReorderCardsRequest request) {
         
         User user = getCurrentUser(userDetails);
@@ -198,7 +199,7 @@ public class CardController {
     @DeleteMapping("/cards/{id}")
     public ResponseEntity<Void> deleteCard(
             @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long id) {
+            @PathVariable UUID id) {
         
         User user = getCurrentUser(userDetails);
         log.info("DELETE /api/v1/cards/{} - userId: {}", id, user.getId());
@@ -218,7 +219,7 @@ public class CardController {
     @DeleteMapping("/cards/bulk-delete")
     public ResponseEntity<Void> deleteCards(
             @AuthenticationPrincipal UserDetails userDetails,
-            @RequestBody List<Long> cardIds) {
+            @RequestBody List<UUID> cardIds) {
         
         User user = getCurrentUser(userDetails);
         log.info("DELETE /api/v1/cards/batch - userId: {}, cardIds: {}", user.getId(), cardIds);
@@ -240,7 +241,7 @@ public class CardController {
     @PatchMapping("/cards/{id}/position")
     public ResponseEntity<CardResponse> updateCardPosition(
             @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long id,
+            @PathVariable UUID id,
             @RequestParam int position) {
         
         User user = getCurrentUser(userDetails);
@@ -261,7 +262,7 @@ public class CardController {
      */
     @GetMapping("/decks/{deckId}/cards/count")
     public ResponseEntity<Long> getCardCount(
-            @PathVariable Long deckId) {
+            @PathVariable UUID deckId) {
         
         log.info("GET /api/v1/decks/{}/cards/count", deckId);
 

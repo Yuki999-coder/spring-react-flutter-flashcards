@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Card Progress Repository
@@ -15,21 +16,20 @@ import java.util.Optional;
  * Handles Spaced Repetition System (SRS) queries
  */
 @Repository
-public interface CardProgressRepository extends JpaRepository<CardProgress, Long> {
+public interface CardProgressRepository extends JpaRepository<CardProgress, UUID> {
 
     /**
      * Find due cards for a specific user
      * Due cards are cards that need to be reviewed now (nextReview <= current time or NULL)
      * 
      * Security: Only returns cards owned by the specified user
-     * Filtering: Excludes soft-deleted cards and decks
+     * Filtering: Excludes soft-deleted cards and decks (via @Where clause)
      * Ordering: Prioritizes new cards (nextReview NULL) first, then oldest due cards
      * 
      * Logic:
      * - Join: CardProgress -> Card -> Deck
      * - Condition 1: cp.userId = :userId (Security)
-     * - Condition 2: Card and Deck are not soft-deleted
-     * - Condition 3: nextReview <= NOW or nextReview IS NULL
+     * - Condition 2: nextReview <= NOW or nextReview IS NULL
      * - Sort: NULL first (new cards), then by nextReview ASC (oldest first)
      *
      * @param userId User ID requesting due cards
@@ -39,13 +39,11 @@ public interface CardProgressRepository extends JpaRepository<CardProgress, Long
            "INNER JOIN Card c ON cp.cardId = c.id " +
            "INNER JOIN Deck d ON c.deckId = d.id " +
            "WHERE cp.userId = :userId " +
-           "AND c.isDeleted = false " +
-           "AND d.isDeleted = false " +
            "AND (cp.nextReview <= CURRENT_TIMESTAMP OR cp.nextReview IS NULL) " +
            "ORDER BY " +
            "CASE WHEN cp.nextReview IS NULL THEN 0 ELSE 1 END, " +
            "cp.nextReview ASC")
-    List<CardProgress> findDueCards(@Param("userId") Long userId);
+    List<CardProgress> findDueCards(@Param("userId") UUID userId);
 
     /**
      * Find due cards for a specific deck
@@ -60,15 +58,13 @@ public interface CardProgressRepository extends JpaRepository<CardProgress, Long
            "INNER JOIN Deck d ON c.deckId = d.id " +
            "WHERE cp.userId = :userId " +
            "AND c.deckId = :deckId " +
-           "AND c.isDeleted = false " +
-           "AND d.isDeleted = false " +
            "AND (cp.nextReview <= CURRENT_TIMESTAMP OR cp.nextReview IS NULL) " +
            "ORDER BY " +
            "CASE WHEN cp.nextReview IS NULL THEN 0 ELSE 1 END, " +
            "cp.nextReview ASC")
     List<CardProgress> findDueCardsByDeck(
-        @Param("userId") Long userId,
-        @Param("deckId") Long deckId
+        @Param("userId") UUID userId,
+        @Param("deckId") UUID deckId
     );
 
     /**
@@ -79,7 +75,7 @@ public interface CardProgressRepository extends JpaRepository<CardProgress, Long
      * @param cardId Card ID
      * @return Optional containing CardProgress if exists
      */
-    Optional<CardProgress> findByUserIdAndCardId(Long userId, Long cardId);
+    Optional<CardProgress> findByUserIdAndCardId(UUID userId, UUID cardId);
 
     /**
      * Find all progress records for a user
@@ -87,7 +83,7 @@ public interface CardProgressRepository extends JpaRepository<CardProgress, Long
      * @param userId User ID
      * @return List of all CardProgress for the user
      */
-    List<CardProgress> findAllByUserId(Long userId);
+    List<CardProgress> findAllByUserId(UUID userId);
 
     /**
      * Count new cards (never studied) for a user
@@ -96,13 +92,9 @@ public interface CardProgressRepository extends JpaRepository<CardProgress, Long
      * @return Count of new cards
      */
     @Query("SELECT COUNT(cp) FROM CardProgress cp " +
-           "INNER JOIN Card c ON cp.cardId = c.id " +
-           "INNER JOIN Deck d ON c.deckId = d.id " +
            "WHERE cp.userId = :userId " +
-           "AND c.isDeleted = false " +
-           "AND d.isDeleted = false " +
            "AND cp.learningState = 'NEW'")
-    long countNewCards(@Param("userId") Long userId);
+    long countNewCards(@Param("userId") UUID userId);
 
     /**
      * Count cards in review state for a user
@@ -114,10 +106,8 @@ public interface CardProgressRepository extends JpaRepository<CardProgress, Long
            "INNER JOIN Card c ON cp.cardId = c.id " +
            "INNER JOIN Deck d ON c.deckId = d.id " +
            "WHERE cp.userId = :userId " +
-           "AND c.isDeleted = false " +
-           "AND d.isDeleted = false " +
            "AND cp.learningState = 'REVIEWING'")
-    long countReviewingCards(@Param("userId") Long userId);
+    long countReviewingCards(@Param("userId") UUID userId);
 
     /**
      * Count due cards (cards that need to be reviewed now)
@@ -129,8 +119,6 @@ public interface CardProgressRepository extends JpaRepository<CardProgress, Long
            "INNER JOIN Card c ON cp.cardId = c.id " +
            "INNER JOIN Deck d ON c.deckId = d.id " +
            "WHERE cp.userId = :userId " +
-           "AND c.isDeleted = false " +
-           "AND d.isDeleted = false " +
            "AND (cp.nextReview <= CURRENT_TIMESTAMP OR cp.nextReview IS NULL)")
-    long countDueCards(@Param("userId") Long userId);
+    long countDueCards(@Param("userId") UUID userId);
 }

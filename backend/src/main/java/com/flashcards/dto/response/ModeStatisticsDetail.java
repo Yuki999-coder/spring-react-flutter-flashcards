@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * Detailed statistics for each study mode
@@ -39,7 +39,7 @@ public class ModeStatisticsDetail {
     /**
      * Last activity time
      */
-    private LocalDateTime lastActive;
+    private Instant lastActive;
 
     /**
      * Last active formatted (e.g., "2 minutes ago")
@@ -64,7 +64,7 @@ public class ModeStatisticsDetail {
     /**
      * Last submission date (for test mode only)
      */
-    private LocalDateTime lastSubmission;
+    private Instant lastSubmission;
 
     /**
      * Last submission formatted

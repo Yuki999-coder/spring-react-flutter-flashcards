@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -17,13 +17,13 @@ import java.util.List;
 @AllArgsConstructor
 public class FolderResponse {
     
-    private Long id;
+    private String id;
     private String name;
     private String description;
-    private Long userId;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    private LocalDateTime lastViewedAt;
+    private String userId;
+    private Instant createdAt;
+    private Instant updatedAt;
+    private Instant lastViewedAt;
     
     // Count of decks in this folder
     private Integer deckCount;

@@ -12,12 +12,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Service for managing study sessions
@@ -42,8 +45,8 @@ public class StudySessionService {
      * @return Created study session
      */
     @Transactional
-    public StudySession createStudySession(User user, Long deckId, StudyMode mode, 
-                                          LocalDateTime startTime, LocalDateTime endTime, 
+    public StudySession createStudySession(User user, UUID deckId, StudyMode mode, 
+                                          Instant startTime, Instant endTime, 
                                           Integer cardsStudied) {
         log.info("Creating study session: userId={}, mode={}, duration={}s", 
                 user.getId(), mode, java.time.Duration.between(startTime, endTime).getSeconds());
@@ -63,7 +66,7 @@ public class StudySessionService {
     /**
      * Get all study sessions for a user
      */
-    public List<StudySession> getUserStudySessions(Long userId) {
+    public List<StudySession> getUserStudySessions(UUID userId) {
         log.debug("Getting study sessions for user: {}", userId);
         return studySessionRepository.findByUserIdOrderByStartTimeDesc(userId);
     }
@@ -72,7 +75,7 @@ public class StudySessionService {
      * Get total study time statistics for a user
      * Returns a map with total time and time per mode (in seconds)
      */
-    public Map<String, Long> getStudyTimeStatistics(Long userId) {
+    public Map<String, Long> getStudyTimeStatistics(UUID userId) {
         log.debug("Getting study time statistics for user: {}", userId);
 
         Map<String, Long> stats = new HashMap<>();
@@ -93,7 +96,7 @@ public class StudySessionService {
     /**
      * Get study sessions within a date range
      */
-    public List<StudySession> getStudySessionsByDateRange(Long userId, LocalDateTime startDate, LocalDateTime endDate) {
+    public List<StudySession> getStudySessionsByDateRange(UUID userId, Instant startDate, Instant endDate) {
         log.debug("Getting study sessions for user {} from {} to {}", userId, startDate, endDate);
         return studySessionRepository.findByUserIdAndDateRange(userId, startDate, endDate);
     }
@@ -102,7 +105,7 @@ public class StudySessionService {
      * Delete all study sessions for a user
      */
     @Transactional
-    public void deleteUserStudySessions(Long userId) {
+    public void deleteUserStudySessions(UUID userId) {
         log.info("Deleting all study sessions for user: {}", userId);
         studySessionRepository.deleteByUserId(userId);
     }
@@ -110,7 +113,7 @@ public class StudySessionService {
     /**
      * Get study time statistics by deck
      */
-    public Map<String, Long> getStudyTimeStatisticsByDeck(Long userId, Long deckId) {
+    public Map<String, Long> getStudyTimeStatisticsByDeck(UUID userId, UUID deckId) {
         log.debug("Getting study time statistics for user: {} and deck: {}", userId, deckId);
         
         Map<String, Long> statistics = new HashMap<>();
@@ -131,7 +134,7 @@ public class StudySessionService {
     /**
      * Get detailed statistics for each mode
      */
-    public Map<String, ModeStatisticsDetail> getModeDetails(Long userId, Long deckId) {
+    public Map<String, ModeStatisticsDetail> getModeDetails(UUID userId, UUID deckId) {
         log.debug("Getting mode details for user: {} and deck: {}", userId, deckId);
         
         Map<String, ModeStatisticsDetail> details = new HashMap<>();
@@ -147,7 +150,7 @@ public class StudySessionService {
     /**
      * Get detailed statistics for a specific mode
      */
-    private ModeStatisticsDetail getModeDetail(Long userId, Long deckId, StudyMode mode) {
+    private ModeStatisticsDetail getModeDetail(UUID userId, UUID deckId, StudyMode mode) {
         // Get sessions for this mode
         List<StudySession> sessions = deckId != null 
             ? studySessionRepository.findByUserIdAndModeAndDeckIdOrderByStartTimeDesc(userId, mode, deckId)
@@ -181,7 +184,7 @@ public class StudySessionService {
         // Calculate average grade for test mode
         Double averageGrade = null;
         Integer testHistory = null;
-        LocalDateTime lastSubmission = null;
+        Instant lastSubmission = null;
         
         if (mode == StudyMode.TEST) {
             // Get test results for this deck
@@ -234,12 +237,12 @@ public class StudySessionService {
     /**
      * Format relative time (e.g., "2 minutes ago")
      */
-    private String formatRelativeTime(LocalDateTime dateTime) {
-        if (dateTime == null) {
+    private String formatRelativeTime(Instant instant) {
+        if (instant == null) {
             return "Never";
         }
 
-        Duration duration = Duration.between(dateTime, LocalDateTime.now());
+        Duration duration = Duration.between(instant, Instant.now());
         long seconds = duration.getSeconds();
 
         if (seconds < 60) {
@@ -259,11 +262,11 @@ public class StudySessionService {
     /**
      * Format date (e.g., "Jan 15, 2026")
      */
-    private String formatDate(LocalDateTime dateTime) {
-        if (dateTime == null) {
+    private String formatDate(Instant instant) {
+        if (instant == null) {
             return null;
         }
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy");
-        return dateTime.format(formatter);
+        return instant.atZone(ZoneId.systemDefault()).format(formatter);
     }
 }

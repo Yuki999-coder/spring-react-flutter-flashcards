@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -18,8 +18,8 @@ import java.util.List;
 @AllArgsConstructor
 public class CardResponse {
 
-    private Long id;
-    private Long deckId;
+    private String id;
+    private String deckId;
     private String term;
     private String definition;
     private String example;
@@ -28,12 +28,12 @@ public class CardResponse {
     private Integer position;
     private List<String> tags;
     private Boolean isStarred;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
     
     // Learning progress fields
     private LearningState learningState;
-    private LocalDateTime nextReview;
+    private Instant nextReview;
     private Double easeFactor;
     private Integer interval;
 }

@@ -3,17 +3,17 @@ package com.flashcards.dto;
 import lombok.Builder;
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Data
 @Builder
 public class ReviewResponse {
-    private Long id;
-    private Long cardId;
+    private String id;
+    private String cardId;
     private Float easeFactor;
     private Integer interval;
     private Integer repetitions;
-    private LocalDateTime nextReview;
-    private LocalDateTime lastReview;
+    private Instant nextReview;
+    private Instant lastReview;
     private String learningState;
 }

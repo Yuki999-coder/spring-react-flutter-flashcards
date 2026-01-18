@@ -18,7 +18,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.UUID;
 
 /**
  * Review Service
@@ -55,7 +57,7 @@ public class ReviewService {
      * @throws UnauthorizedException if user doesn't own the card
      */
     @Transactional
-    public CardProgress reviewCard(User user, Long cardId, Grade grade) {
+    public CardProgress reviewCard(User user, UUID cardId, Grade grade) {
         log.debug("Reviewing card {} by user {} with grade {}", cardId, user.getId(), grade);
 
         // Step 1: Validate card existence and ownership
@@ -65,7 +67,7 @@ public class ReviewService {
         CardProgress progress = getOrCreateCardProgress(user.getId(), cardId);
 
         // Step 3: Record current time for study log
-        LocalDateTime reviewTime = LocalDateTime.now();
+        Instant reviewTime = Instant.now();
         int currentInterval = progress.getInterval();
         int currentRepetitions = progress.getRepetitions();
         float currentEaseFactor = progress.getEaseFactor();
@@ -74,7 +76,7 @@ public class ReviewService {
         applySmAlgorithm(progress, grade, currentInterval, currentRepetitions, currentEaseFactor);
 
         // Step 5: Set next review date
-        progress.setNextReview(reviewTime.plusDays(progress.getInterval()));
+        progress.setNextReview(reviewTime.plus(progress.getInterval(), ChronoUnit.DAYS));
         progress.setUserId(user.getId());
         progress.setCardId(cardId);
 
@@ -93,7 +95,7 @@ public class ReviewService {
     /**
      * Validate that card exists, is not deleted, and belongs to the user
      */
-    private Card validateCardAndOwnership(Long userId, Long cardId) {
+    private Card validateCardAndOwnership(UUID userId, UUID cardId) {
         // Find card with ownership verification (joins to Deck)
         Card card = cardRepository.findByIdAndDeckUserId(cardId, userId)
                 .orElseThrow(() -> {
@@ -102,7 +104,7 @@ public class ReviewService {
                 });
 
         // Double-check soft delete status
-        if (Boolean.TRUE.equals(card.getIsDeleted())) {
+        if (card.isDeleted()) {
             log.warn("Attempted to review deleted card: cardId={}", cardId);
             throw new CardNotFoundException("Card not found");
         }
@@ -111,7 +113,7 @@ public class ReviewService {
         Deck deck = deckRepository.findById(card.getDeckId())
                 .orElseThrow(() -> new CardNotFoundException("Card not found"));
 
-        if (Boolean.TRUE.equals(deck.getIsDeleted())) {
+        if (deck.isDeleted()) {
             log.warn("Attempted to review card in deleted deck: cardId={}, deckId={}", cardId, deck.getId());
             throw new CardNotFoundException("Card not found");
         }
@@ -129,7 +131,7 @@ public class ReviewService {
     /**
      * Get existing CardProgress or create new one with default values
      */
-    private CardProgress getOrCreateCardProgress(Long userId, Long cardId) {
+    private CardProgress getOrCreateCardProgress(UUID userId, UUID cardId) {
         return cardProgressRepository.findByUserIdAndCardId(userId, cardId)
                 .orElseGet(() -> {
                     log.info("Creating new CardProgress for user {} and card {}", userId, cardId);
@@ -222,7 +224,7 @@ public class ReviewService {
     /**
      * Save study session to log for analytics
      */
-    private void saveStudyLog(Long userId, Long cardId, Grade grade, LocalDateTime reviewTime) {
+    private void saveStudyLog(UUID userId, UUID cardId, Grade grade, Instant reviewTime) {
         StudyLog log = StudyLog.builder()
                 .userId(userId)
                 .cardId(cardId)
@@ -239,21 +241,21 @@ public class ReviewService {
     /**
      * Get due cards count for a user
      */
-    public long getDueCardsCount(Long userId) {
+    public long getDueCardsCount(UUID userId) {
         return cardProgressRepository.findDueCards(userId).size();
     }
 
     /**
      * Get new cards count for a user
      */
-    public long getNewCardsCount(Long userId) {
+    public long getNewCardsCount(UUID userId) {
         return cardProgressRepository.countNewCards(userId);
     }
 
     /**
      * Get reviewing cards count for a user
      */
-    public long getReviewingCardsCount(Long userId) {
+    public long getReviewingCardsCount(UUID userId) {
         return cardProgressRepository.countReviewingCards(userId);
     }
 }

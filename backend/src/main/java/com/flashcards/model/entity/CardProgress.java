@@ -5,36 +5,34 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.util.UUID;
 
 /**
  * Card Progress Entity
  * Tracks the Spaced Repetition System (SRS) progress for each user-card combination
  * Implements the SM-2 algorithm for optimal learning intervals
+ * Extends BaseEntity for UUID primary key and audit fields
  */
 @Entity
 @Table(name = "card_progress", uniqueConstraints = {
     @UniqueConstraint(name = "uq_user_card", columnNames = {"user_id", "card_id"})
 })
 @Data
+@EqualsAndHashCode(callSuper = true)
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CardProgress {
+public class CardProgress extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "user_id", nullable = false, columnDefinition = "uuid")
+    private UUID userId;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
-
-    @Column(name = "card_id", nullable = false)
-    private Long cardId;
+    @Column(name = "card_id", nullable = false, columnDefinition = "uuid")
+    private UUID cardId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "learning_state", nullable = false, length = 30)
@@ -42,7 +40,7 @@ public class CardProgress {
     private LearningState learningState = LearningState.NEW;
 
     @Column(name = "next_review")
-    private LocalDateTime nextReview;
+    private Instant nextReview;
 
     @Column(nullable = false)
     @Builder.Default
@@ -55,14 +53,6 @@ public class CardProgress {
     @Column(nullable = false)
     @Builder.Default
     private Integer repetitions = 0;
-
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", insertable = false, updatable = false)

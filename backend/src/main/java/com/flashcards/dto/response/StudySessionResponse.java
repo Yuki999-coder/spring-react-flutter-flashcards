@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * Response DTO for StudySession
@@ -17,13 +17,13 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class StudySessionResponse {
 
-    private Long id;
-    private Long userId;
-    private Long deckId;
+    private String id;
+    private String userId;
+    private String deckId;
     private StudyMode mode;
-    private LocalDateTime startTime;
-    private LocalDateTime endTime;
+    private Instant startTime;
+    private Instant endTime;
     private Integer durationSeconds;
     private Integer cardsStudied;
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 }

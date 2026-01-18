@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -46,7 +47,6 @@ public class DeckService {
                 .description(request.getDescription())
                 .sourceType(request.getSourceType())
                 .sourceId(request.getSourceId())
-                .isDeleted(false)
                 .build();
 
         Deck savedDeck = deckRepository.save(deck);
@@ -67,7 +67,7 @@ public class DeckService {
      * @throws UnauthorizedException if user doesn't own the deck
      */
     @Transactional
-    public DeckResponse updateDeck(User user, Long deckId, UpdateDeckRequest request) {
+    public DeckResponse updateDeck(User user, UUID deckId, UpdateDeckRequest request) {
         log.info("Updating deck {}: user={}", deckId, user.getId());
 
         Deck deck = getDeckWithOwnershipCheck(user.getId(), deckId);
@@ -94,14 +94,14 @@ public class DeckService {
      * @throws UnauthorizedException if user doesn't own the deck
      */
     @Transactional
-    public void deleteDeck(User user, Long deckId) {
+    public void deleteDeck(User user, UUID deckId) {
         log.info("Soft deleting deck {}: user={}", deckId, user.getId());
 
         Deck deck = getDeckWithOwnershipCheck(user.getId(), deckId);
 
-        // Soft delete: Set isDeleted flag and save
+        // Soft delete: Set deletedAt timestamp
         // DO NOT call repository.delete(deck)
-        deck.setIsDeleted(true);
+        deck.softDelete();
         deckRepository.save(deck);
 
         log.info("Deck soft deleted: id={}, userId={}", deckId, user.getId());
@@ -117,7 +117,7 @@ public class DeckService {
      * @throws UnauthorizedException if user doesn't own the deck
      */
     @Transactional(readOnly = true)
-    public DeckResponse getDeckById(User user, Long deckId) {
+    public DeckResponse getDeckById(User user, UUID deckId) {
         log.debug("Getting deck {}: user={}", deckId, user.getId());
 
         Deck deck = getDeckWithOwnershipCheck(user.getId(), deckId);
@@ -158,14 +158,14 @@ public class DeckService {
      * Uses native query to avoid triggering @UpdateTimestamp on updatedAt
      */
     @Transactional
-    public void updateLastViewed(User user, Long deckId) {
+    public void updateLastViewed(User user, UUID deckId) {
         log.info("Updating deck last viewed: deckId={}, userId={}", deckId, user.getId());
         
         // Use native query to update only last_viewed_at without triggering updated_at
         int rowsUpdated = deckRepository.updateLastViewedAt(
             deckId, 
             user.getId(), 
-            java.time.LocalDateTime.now()
+            java.time.Instant.now()
         );
         
         if (rowsUpdated == 0) {
@@ -180,7 +180,7 @@ public class DeckService {
      * Internal method: Get deck and verify ownership
      * Throws exceptions if not found or unauthorized
      */
-    private Deck getDeckWithOwnershipCheck(Long userId, Long deckId) {
+    private Deck getDeckWithOwnershipCheck(UUID userId, UUID deckId) {
         Deck deck = deckRepository.findByIdAndUserId(deckId, userId)
                 .orElseThrow(() -> {
                     log.warn("Deck not found or unauthorized: deckId={}, userId={}", deckId, userId);
@@ -206,9 +206,9 @@ public class DeckService {
         long cardCount = cardRepository.countByDeckId(deck.getId());
 
         return DeckResponse.builder()
-                .id(deck.getId())
-                .userId(deck.getUserId())
-                .folderId(deck.getFolderId())
+                .id(deck.getId().toString())
+                .userId(deck.getUserId().toString())
+                .folderId(deck.getFolderId() != null ? deck.getFolderId().toString() : null)
                 .title(deck.getTitle())
                 .description(deck.getDescription())
                 .sourceType(deck.getSourceType())

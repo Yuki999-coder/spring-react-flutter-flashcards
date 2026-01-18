@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * Response DTO for CardProgress/Review result
@@ -17,16 +17,16 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class ReviewResponse {
 
-    private Long id;
-    private Long userId;
-    private Long cardId;
+    private String id;
+    private String userId;
+    private String cardId;
     private LearningState learningState;
-    private LocalDateTime nextReview;
+    private Instant nextReview;
     private Integer interval;
     private Float easeFactor;
     private Integer repetitions;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
     
     // Card information for frontend display
     private CardResponse card;

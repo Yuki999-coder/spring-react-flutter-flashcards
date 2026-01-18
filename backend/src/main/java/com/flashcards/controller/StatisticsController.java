@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -63,7 +64,7 @@ public class StatisticsController {
     @GetMapping("/summary/enhanced")
     public ResponseEntity<StatisticsSummaryResponse> getEnhancedSummary(
             @AuthenticationPrincipal UserDetails userDetails,
-            @RequestParam(required = false) Long deckId) {
+            @RequestParam(required = false) UUID deckId) {
         
         User user = userDetailsService.getUserByEmail(userDetails.getUsername());
         log.info("GET /api/v1/statistics/summary/enhanced - userId: {}, deckId: {}", user.getId(), deckId);

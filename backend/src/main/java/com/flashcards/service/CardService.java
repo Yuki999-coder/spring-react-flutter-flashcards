@@ -20,11 +20,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -56,14 +57,17 @@ public class CardService {
         log.info("Adding card to deck {}: user={}, term={}", 
                  request.getDeckId(), user.getId(), request.getTerm());
 
+        // Convert String deckId to UUID
+        UUID deckId = UUID.fromString(request.getDeckId());
+
         // Verify deck exists and user owns it
-        Deck deck = verifyDeckOwnership(user.getId(), request.getDeckId());
+        Deck deck = verifyDeckOwnership(user.getId(), deckId);
 
         // Calculate next position (max position + 1)
-        int nextPosition = calculateNextPosition(request.getDeckId());
+        int nextPosition = calculateNextPosition(deckId);
 
         Card card = Card.builder()
-                .deckId(request.getDeckId())
+                .deckId(deckId)
                 .term(request.getTerm())
                 .definition(request.getDefinition())
                 .example(request.getExample())
@@ -71,7 +75,6 @@ public class CardService {
                 .audioUrl(request.getAudioUrl())
                 .position(nextPosition)
                 .tags(request.getTags())
-                .isDeleted(false)
                 .build();
 
         Card savedCard = cardRepository.save(card);
@@ -99,7 +102,8 @@ public class CardService {
             return List.of();
         }
 
-        Long deckId = requests.get(0).getDeckId();
+        String deckIdStr = requests.get(0).getDeckId();
+        UUID deckId = UUID.fromString(deckIdStr);
         log.info("Bulk adding {} cards to deck {}: user={}", 
                  requests.size(), deckId, user.getId());
 
@@ -137,7 +141,6 @@ public class CardService {
                     .audioUrl(request.getAudioUrl())
                     .position(startPosition + i)
                     .tags(request.getTags())
-                    .isDeleted(false)
                     .build();
             
             cards.add(card);
@@ -176,7 +179,7 @@ public class CardService {
      * @throws UnauthorizedException if user doesn't own the card
      */
     @Transactional
-    public CardResponse updateCard(User user, Long cardId, UpdateCardRequest request) {
+    public CardResponse updateCard(User user, UUID cardId, UpdateCardRequest request) {
         log.info("Updating card {}: user={}", cardId, user.getId());
 
         Card card = getCardWithOwnershipCheck(user.getId(), cardId);
@@ -212,14 +215,14 @@ public class CardService {
      * @throws UnauthorizedException if user doesn't own the card
      */
     @Transactional
-    public void deleteCard(User user, Long cardId) {
+    public void deleteCard(User user, UUID cardId) {
         log.info("Soft deleting card {}: user={}", cardId, user.getId());
 
         Card card = getCardWithOwnershipCheck(user.getId(), cardId);
 
-        // Soft delete: Set isDeleted flag and save
+        // Soft delete: Set deletedAt timestamp
         // DO NOT call repository.delete(card)
-        card.setIsDeleted(true);
+        card.softDelete();
         cardRepository.save(card);
 
         log.info("Card soft deleted: id={}, deckId={}, userId={}", 
@@ -235,7 +238,7 @@ public class CardService {
      * @throws UnauthorizedException if user doesn't own any of the cards
      */
     @Transactional
-    public void deleteCards(User user, List<Long> cardIds) {
+    public void deleteCards(User user, List<UUID> cardIds) {
         if (cardIds == null || cardIds.isEmpty()) {
             log.warn("Empty card IDs list for bulk delete: userId={}", user.getId());
             return;
@@ -257,7 +260,7 @@ public class CardService {
                 log.error("User {} does not own card {}", user.getId(), card.getId());
                 throw new UnauthorizedException("Bạn không có quyền xóa thẻ này");
             }
-            card.setIsDeleted(true);
+            card.softDelete();
         }
 
         // Bulk save
@@ -275,7 +278,7 @@ public class CardService {
      * @throws UnauthorizedException if user doesn't own the card
      */
     @Transactional(readOnly = true)
-    public CardResponse getCardById(User user, Long cardId) {
+    public CardResponse getCardById(User user, UUID cardId) {
         log.debug("Getting card {}: user={}", cardId, user.getId());
 
         Card card = getCardWithOwnershipCheck(user.getId(), cardId);
@@ -295,7 +298,7 @@ public class CardService {
      * @throws UnauthorizedException if user doesn't own the deck
      */
     @Transactional(readOnly = true)
-    public List<CardResponse> getCardsByDeck(User user, Long deckId) {
+    public List<CardResponse> getCardsByDeck(User user, UUID deckId) {
         log.debug("Getting cards for deck {}: user={}", deckId, user.getId());
 
         // Verify deck ownership first
@@ -316,7 +319,7 @@ public class CardService {
      * @return Number of cards (excludes soft-deleted)
      */
     @Transactional(readOnly = true)
-    public long getCardCount(Long deckId) {
+    public long getCardCount(UUID deckId) {
         return cardRepository.countByDeckId(deckId);
     }
 
@@ -329,7 +332,7 @@ public class CardService {
      * @return Updated card response
      */
     @Transactional
-    public CardResponse updateCardPosition(User user, Long cardId, int newPosition) {
+    public CardResponse updateCardPosition(User user, UUID cardId, int newPosition) {
         log.info("Updating card {} position to {}: user={}", cardId, newPosition, user.getId());
 
         Card card = getCardWithOwnershipCheck(user.getId(), cardId);
@@ -351,15 +354,21 @@ public class CardService {
      * @return List of updated cards
      */
     @Transactional
-    public List<CardResponse> reorderCards(User user, Long deckId, ReorderCardsRequest request) {
+    public List<CardResponse> reorderCards(User user, UUID deckId, ReorderCardsRequest request) {
         log.info("Reordering cards in deck {}: user={}, count={}", 
                  deckId, user.getId(), request.getCardIds().size());
+
+        // Convert String card IDs to UUID
+        List<UUID> cardIds = new ArrayList<>();
+        for (String id : request.getCardIds()) {
+            cardIds.add(UUID.fromString(id));
+        }
 
         // Verify deck ownership
         verifyDeckOwnership(user.getId(), deckId);
 
         // Fetch all cards by IDs and verify they belong to the deck
-        List<Card> cards = cardRepository.findAllById(request.getCardIds());
+        List<Card> cards = cardRepository.findAllById(cardIds);
         
         // Verify all cards belong to this deck
         for (Card card : cards) {
@@ -370,8 +379,8 @@ public class CardService {
         }
 
         // Update positions based on the order in cardIds list
-        for (int i = 0; i < request.getCardIds().size(); i++) {
-            Long cardId = request.getCardIds().get(i);
+        for (int i = 0; i < cardIds.size(); i++) {
+            UUID cardId = cardIds.get(i);
             Card card = cards.stream()
                     .filter(c -> c.getId().equals(cardId))
                     .findFirst()
@@ -392,7 +401,7 @@ public class CardService {
     /**
      * Internal method: Verify deck exists and user owns it
      */
-    private Deck verifyDeckOwnership(Long userId, Long deckId) {
+    private Deck verifyDeckOwnership(UUID userId, UUID deckId) {
         Deck deck = deckRepository.findByIdAndUserId(deckId, userId)
                 .orElseThrow(() -> {
                     log.warn("Deck not found or unauthorized: deckId={}, userId={}", deckId, userId);
@@ -400,7 +409,7 @@ public class CardService {
                 });
 
         // Check if deck is soft-deleted
-        if (Boolean.TRUE.equals(deck.getIsDeleted())) {
+        if (deck.isDeleted()) {
             log.warn("Attempted to access deleted deck: deckId={}", deckId);
             throw new DeckNotFoundException(deckId);
         }
@@ -418,7 +427,7 @@ public class CardService {
     /**
      * Internal method: Get card and verify ownership through deck
      */
-    private Card getCardWithOwnershipCheck(Long userId, Long cardId) {
+    private Card getCardWithOwnershipCheck(UUID userId, UUID cardId) {
         Card card = cardRepository.findByIdAndDeckUserId(cardId, userId)
                 .orElseThrow(() -> {
                     log.warn("Card not found or unauthorized: cardId={}, userId={}", cardId, userId);
@@ -435,7 +444,7 @@ public class CardService {
      * Calculate next position for a new card in a deck
      * Returns max(position) + 1, or 0 if deck is empty
      */
-    private int calculateNextPosition(Long deckId) {
+    private int calculateNextPosition(UUID deckId) {
         List<Card> existingCards = cardRepository.findAllByDeckIdOrderByPositionAsc(deckId);
         
         if (existingCards.isEmpty()) {
@@ -462,7 +471,7 @@ public class CardService {
      * @throws UnauthorizedException if user doesn't own the deck
      */
     @Transactional(readOnly = true)
-    public List<CardResponse> getDifficultCards(User user, Long deckId) {
+    public List<CardResponse> getDifficultCards(User user, UUID deckId) {
         log.info("Getting difficult cards for deck {}: user={}", deckId, user.getId());
 
         // Verify deck ownership
@@ -487,7 +496,7 @@ public class CardService {
      * @throws UnauthorizedException if user doesn't own the deck
      */
     @Transactional(readOnly = true)
-    public long countDifficultCards(User user, Long deckId) {
+    public long countDifficultCards(User user, UUID deckId) {
         log.info("Counting difficult cards for deck {}: user={}", deckId, user.getId());
 
         // Verify deck ownership
@@ -510,8 +519,8 @@ public class CardService {
                 .orElse(null);
         
         CardResponse.CardResponseBuilder builder = CardResponse.builder()
-                .id(card.getId())
-                .deckId(card.getDeckId())
+                .id(card.getId().toString())
+                .deckId(card.getDeckId().toString())
                 .term(card.getTerm())
                 .definition(card.getDefinition())
                 .example(card.getExample())
@@ -545,7 +554,7 @@ public class CardService {
     public DueCardsSummaryResponse getDueCardsSummary(User user) {
         log.info("Getting due cards summary for user: {}", user.getId());
 
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         
         // Get all user's decks (soft-deleted automatically filtered by @Where clause)
         List<Deck> userDecks = deckRepository.findAllByUserId(user.getId());
@@ -579,7 +588,7 @@ public class CardService {
             
             if (deckDueCount > 0) {
                 decksDue.add(DueCardsSummaryResponse.DeckDueInfo.builder()
-                        .deckId(deck.getId())
+                        .deckId(deck.getId().toString())
                         .deckTitle(deck.getTitle())
                         .dueCount(deckDueCount)
                         .build());

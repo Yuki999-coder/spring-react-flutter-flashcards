@@ -15,10 +15,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -34,7 +37,7 @@ public class StatisticsService {
     /**
      * Log a study action
      */
-    public void logStudyAction(Long userId, Long cardId, String action) {
+    public void logStudyAction(UUID userId, UUID cardId, String action) {
         StudyLog studyLog = StudyLog.builder()
                 .userId(userId)
                 .cardId(cardId)
@@ -51,7 +54,7 @@ public class StatisticsService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
-        Long userId = user.getId();
+        UUID userId = user.getId();
         
         log.info("Getting statistics summary for user: {}", userId);
         
@@ -82,7 +85,7 @@ public class StatisticsService {
     /**
      * Calculate current study streak (consecutive days)
      */
-    private Integer calculateStreak(Long userId) {
+    private Integer calculateStreak(UUID userId) {
         List<StudyLog> studyLogs = studyLogRepository.findAllByUserIdOrderByReviewedAtDesc(userId);
         
         if (studyLogs == null || studyLogs.isEmpty()) {
@@ -91,7 +94,7 @@ public class StatisticsService {
         
         // Extract unique dates and sort descending
         List<LocalDate> studyDates = studyLogs.stream()
-                .map(log -> log.getReviewedAt().toLocalDate())
+                .map(log -> log.getReviewedAt().atZone(ZoneId.systemDefault()).toLocalDate())
                 .distinct()
                 .sorted(Comparator.reverseOrder())
                 .collect(Collectors.toList());
@@ -127,8 +130,8 @@ public class StatisticsService {
     /**
      * Generate heatmap data for last 365 days
      */
-    private Map<String, Integer> generateHeatmapData(Long userId) {
-        LocalDateTime startDate = LocalDateTime.now().minusDays(365);
+    private Map<String, Integer> generateHeatmapData(UUID userId) {
+        Instant startDate = Instant.now().minus(365, java.time.temporal.ChronoUnit.DAYS);
         List<StudyLog> logs = studyLogRepository.findByUserIdAndReviewedAtAfter(userId, startDate);
         
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -136,7 +139,7 @@ public class StatisticsService {
         // Group by date and count
         Map<String, Integer> heatmap = logs.stream()
                 .collect(Collectors.groupingBy(
-                        log -> log.getReviewedAt().toLocalDate().format(formatter),
+                        log -> log.getReviewedAt().atZone(ZoneId.systemDefault()).toLocalDate().format(formatter),
                         Collectors.collectingAndThen(Collectors.counting(), Long::intValue)
                 ));
         
@@ -159,7 +162,7 @@ public class StatisticsService {
      * Generate pie chart data (card status distribution)
      * TODO: Update when Card entity has status field (SM-2 algorithm)
      */
-    private StatisticsSummaryDTO.PieChartDataDTO generatePieChartData(Long userId) {
+    private StatisticsSummaryDTO.PieChartDataDTO generatePieChartData(UUID userId) {
         List<Card> userCards = cardRepository.findAllByDeck_User_Id(userId);
         
         // Get cards that have been studied (have study logs)
@@ -189,7 +192,7 @@ public class StatisticsService {
      * Get mastery level statistics for a user
      * Categorizes cards into: New, Still Learning, Almost Done, Mastered
      */
-    public MasteryLevelStatistics getMasteryLevelStatistics(Long userId) {
+    public MasteryLevelStatistics getMasteryLevelStatistics(UUID userId) {
         log.info("Getting mastery level statistics for user: {}", userId);
 
         // Get all cards for this user through their decks
@@ -262,7 +265,7 @@ public class StatisticsService {
     /**
      * Get mastery level statistics for a specific deck
      */
-    public MasteryLevelStatistics getMasteryLevelStatisticsByDeck(Long userId, Long deckId) {
+    public MasteryLevelStatistics getMasteryLevelStatisticsByDeck(UUID userId, UUID deckId) {
         log.info("Getting mastery level statistics for user: {} and deck: {}", userId, deckId);
 
         // Get all cards for this deck (already filters deleted cards via @Where clause)

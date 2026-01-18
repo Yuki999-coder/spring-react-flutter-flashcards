@@ -18,7 +18,7 @@ import java.util.List;
 public class CreateCardRequest {
 
     @NotNull(message = "Deck ID is required")
-    private Long deckId;
+    private String deckId;
 
     @NotNull(message = "Term is required")
     private String term;

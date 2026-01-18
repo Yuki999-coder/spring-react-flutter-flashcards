@@ -1,0 +1,447 @@
+{
+  "info": {
+    "name": "Flashcards Sync API",
+    "description": "API collection for testing offline-first sync endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "lastSyncTime",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Auth - Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Save token to environment",
+              "const response = pm.response.json();",
+              "pm.environment.set('token', response.token);",
+              "pm.collectionVariables.set('token', response.token);",
+              "",
+              "// Test assertions",
+              "pm.test('Status code is 200', function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response has token', function() {",
+              "    pm.expect(response.token).to.be.a('string');",
+              "    pm.expect(response.token.length).to.be.above(10);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "login"]
+        },
+        "description": "Login để lấy JWT token cho các requests tiếp theo"
+      },
+      "response": []
+    },
+    {
+      "name": "2. Sync - Get Server Time",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response is valid ISO datetime', function() {",
+              "    const serverTime = pm.response.text().replace(/\"/g, '');",
+              "    const date = new Date(serverTime);",
+              "    pm.expect(date.toString()).to.not.equal('Invalid Date');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/sync/time",
+          "host": ["{{baseUrl}}"],
+          "path": ["sync", "time"]
+        },
+        "description": "Get current server timestamp"
+      },
+      "response": []
+    },
+    {
+      "name": "3. Sync - Pull All Data (First Sync)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const response = pm.response.json();",
+              "",
+              "// Save serverTime for next sync",
+              "pm.collectionVariables.set('lastSyncTime', response.serverTime);",
+              "",
+              "pm.test('Status code is 200', function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response has all entity arrays', function() {",
+              "    pm.expect(response).to.have.property('serverTime');",
+              "    pm.expect(response).to.have.property('folders');",
+              "    pm.expect(response).to.have.property('decks');",
+              "    pm.expect(response).to.have.property('cards');",
+              "    pm.expect(response).to.have.property('studyLogs');",
+              "    pm.expect(response).to.have.property('cardProgress');",
+              "});",
+              "",
+              "pm.test('All arrays are valid', function() {",
+              "    pm.expect(response.folders).to.be.an('array');",
+              "    pm.expect(response.decks).to.be.an('array');",
+              "    pm.expect(response.cards).to.be.an('array');",
+              "    pm.expect(response.studyLogs).to.be.an('array');",
+              "    pm.expect(response.cardProgress).to.be.an('array');",
+              "});",
+              "",
+              "console.log('Folders:', response.folders.length);",
+              "console.log('Decks:', response.decks.length);",
+              "console.log('Cards:', response.cards.length);",
+              "console.log('StudyLogs:', response.studyLogs.length);",
+              "console.log('CardProgress:', response.cardProgress.length);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/sync",
+          "host": ["{{baseUrl}}"],
+          "path": ["sync"]
+        },
+        "description": "Pull tất cả dữ liệu từ server (first sync - không có lastSyncTime)"
+      },
+      "response": []
+    },
+    {
+      "name": "4. Sync - Pull Delta Changes",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const response = pm.response.json();",
+              "",
+              "pm.test('Status code is 200', function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response structure is correct', function() {",
+              "    pm.expect(response).to.have.property('serverTime');",
+              "    pm.expect(response).to.have.property('decks');",
+              "    pm.expect(response).to.have.property('cards');",
+              "});",
+              "",
+              "console.log('Changed Folders:', response.folders.length);",
+              "console.log('Changed Decks:', response.decks.length);",
+              "console.log('Changed Cards:', response.cards.length);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/sync?lastSyncTime={{lastSyncTime}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["sync"],
+          "query": [
+            {
+              "key": "lastSyncTime",
+              "value": "{{lastSyncTime}}",
+              "description": "Timestamp từ lần sync cuối"
+            }
+          ]
+        },
+        "description": "Pull chỉ các thay đổi sau lastSyncTime (delta sync)"
+      },
+      "response": []
+    },
+    {
+      "name": "5. Sync - Push New Deck",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const response = pm.response.json();",
+              "",
+              "pm.test('Status code is 200', function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response has serverTime', function() {",
+              "    pm.expect(response).to.have.property('serverTime');",
+              "});",
+              "",
+              "// Update lastSyncTime",
+              "pm.collectionVariables.set('lastSyncTime', response.serverTime);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"decks\": [\n    {\n      \"id\": null,\n      \"title\": \"Deck from Mobile Offline\",\n      \"description\": \"Created while offline\",\n      \"sourceType\": \"LOCAL\",\n      \"isDeleted\": false\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/sync",
+          "host": ["{{baseUrl}}"],
+          "path": ["sync"]
+        },
+        "description": "Push deck mới được tạo offline lên server"
+      },
+      "response": []
+    },
+    {
+      "name": "6. Sync - Push New Card",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const response = pm.response.json();",
+              "",
+              "pm.test('Status code is 200', function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.collectionVariables.set('lastSyncTime', response.serverTime);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cards\": [\n    {\n      \"id\": null,\n      \"deckId\": 1,\n      \"term\": \"Sync Test\",\n      \"definition\": \"Testing sync API from Postman\",\n      \"example\": \"This is an example\",\n      \"position\": 0,\n      \"tags\": [\"test\", \"sync\"],\n      \"isStarred\": false,\n      \"isDeleted\": false\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/sync",
+          "host": ["{{baseUrl}}"],
+          "path": ["sync"]
+        },
+        "description": "Push card mới lên server (cần thay deckId thành ID thực tế)"
+      },
+      "response": []
+    },
+    {
+      "name": "7. Sync - Push Study Log",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const response = pm.response.json();",
+              "",
+              "pm.test('Status code is 200', function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.collectionVariables.set('lastSyncTime', response.serverTime);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"studyLogs\": [\n    {\n      \"id\": null,\n      \"cardId\": 1,\n      \"grade\": \"GOOD\",\n      \"action\": \"REVIEW\",\n      \"timeTakenMs\": 3500\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/sync",
+          "host": ["{{baseUrl}}"],
+          "path": ["sync"]
+        },
+        "description": "Push study log từ mobile (cần thay cardId thành ID thực tế)"
+      },
+      "response": []
+    },
+    {
+      "name": "8. Sync - Push Card Progress (SRS)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const response = pm.response.json();",
+              "",
+              "pm.test('Status code is 200', function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.collectionVariables.set('lastSyncTime', response.serverTime);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cardProgress\": [\n    {\n      \"id\": null,\n      \"cardId\": 1,\n      \"learningState\": \"LEARNING\",\n      \"nextReview\": \"2024-01-20T10:00:00\",\n      \"interval\": 1,\n      \"easeFactor\": 2.5,\n      \"repetitions\": 2\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/sync",
+          "host": ["{{baseUrl}}"],
+          "path": ["sync"]
+        },
+        "description": "Push card progress (SRS data) từ mobile"
+      },
+      "response": []
+    },
+    {
+      "name": "9. Sync - Push Complete Sync",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const response = pm.response.json();",
+              "",
+              "pm.test('Status code is 200', function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.collectionVariables.set('lastSyncTime', response.serverTime);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"folders\": [\n    {\n      \"id\": null,\n      \"name\": \"Mobile Folder\",\n      \"color\": \"#FF5733\"\n    }\n  ],\n  \"decks\": [\n    {\n      \"id\": null,\n      \"folderId\": 1,\n      \"title\": \"Complete Sync Test\",\n      \"description\": \"Testing all entities at once\",\n      \"sourceType\": \"LOCAL\",\n      \"isDeleted\": false\n    }\n  ],\n  \"cards\": [\n    {\n      \"id\": null,\n      \"deckId\": 1,\n      \"term\": \"Complete\",\n      \"definition\": \"Hoàn thành\",\n      \"example\": \"The sync is complete\",\n      \"position\": 0,\n      \"isStarred\": true,\n      \"isDeleted\": false\n    }\n  ],\n  \"studyLogs\": [\n    {\n      \"id\": null,\n      \"cardId\": 1,\n      \"grade\": \"EASY\",\n      \"action\": \"LEARN\",\n      \"timeTakenMs\": 2000\n    }\n  ],\n  \"cardProgress\": [\n    {\n      \"id\": null,\n      \"cardId\": 1,\n      \"learningState\": \"NEW\",\n      \"interval\": 0,\n      \"easeFactor\": 2.5,\n      \"repetitions\": 0\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/sync",
+          "host": ["{{baseUrl}}"],
+          "path": ["sync"]
+        },
+        "description": "Push tất cả loại entities cùng lúc (full bidirectional sync)"
+      },
+      "response": []
+    }
+  ]
+}

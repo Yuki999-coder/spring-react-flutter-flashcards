@@ -9,8 +9,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Study Log Repository
@@ -18,7 +19,7 @@ import java.util.List;
  * Tracks all study sessions for analytics and statistics
  */
 @Repository
-public interface StudyLogRepository extends JpaRepository<StudyLog, Long> {
+public interface StudyLogRepository extends JpaRepository<StudyLog, UUID> {
 
     /**
      * Find all study logs for a specific user
@@ -28,7 +29,7 @@ public interface StudyLogRepository extends JpaRepository<StudyLog, Long> {
      * @param pageable Pagination parameters
      * @return Page of study logs ordered by most recent first
      */
-    Page<StudyLog> findAllByUserIdOrderByReviewedAtDesc(Long userId, Pageable pageable);
+    Page<StudyLog> findAllByUserIdOrderByReviewedAtDesc(UUID userId, Pageable pageable);
 
     /**
      * Find study logs for a specific card
@@ -38,7 +39,7 @@ public interface StudyLogRepository extends JpaRepository<StudyLog, Long> {
      * @param cardId Card ID
      * @return List of study logs for the card
      */
-    List<StudyLog> findAllByUserIdAndCardIdOrderByReviewedAtDesc(Long userId, Long cardId);
+    List<StudyLog> findAllByUserIdAndCardIdOrderByReviewedAtDesc(UUID userId, UUID cardId);
 
     /**
      * Find study logs within a date range
@@ -55,9 +56,9 @@ public interface StudyLogRepository extends JpaRepository<StudyLog, Long> {
            "AND sl.reviewedAt <= :endDate " +
            "ORDER BY sl.reviewedAt DESC")
     List<StudyLog> findByUserIdAndDateRange(
-        @Param("userId") Long userId,
-        @Param("startDate") LocalDateTime startDate,
-        @Param("endDate") LocalDateTime endDate
+        @Param("userId") UUID userId,
+        @Param("startDate") Instant startDate,
+        @Param("endDate") Instant endDate
     );
 
     /**
@@ -66,7 +67,7 @@ public interface StudyLogRepository extends JpaRepository<StudyLog, Long> {
      * @param userId User ID
      * @return Total number of reviews
      */
-    long countByUserId(Long userId);
+    long countByUserId(UUID userId);
 
     /**
      * Count reviews by grade for a user
@@ -76,7 +77,7 @@ public interface StudyLogRepository extends JpaRepository<StudyLog, Long> {
      * @param grade Grade to count
      * @return Number of reviews with the specified grade
      */
-    long countByUserIdAndGrade(Long userId, Grade grade);
+    long countByUserIdAndGrade(UUID userId, Grade grade);
 
     /**
      * Get study statistics for today
@@ -91,8 +92,8 @@ public interface StudyLogRepository extends JpaRepository<StudyLog, Long> {
            "AND sl.reviewedAt >= :startOfDay " +
            "ORDER BY sl.reviewedAt DESC")
     List<StudyLog> findTodayLogs(
-        @Param("userId") Long userId,
-        @Param("startOfDay") LocalDateTime startOfDay
+        @Param("userId") UUID userId,
+        @Param("startOfDay") Instant startOfDay
     );
 
     /**
@@ -104,7 +105,7 @@ public interface StudyLogRepository extends JpaRepository<StudyLog, Long> {
     @Query("SELECT AVG(sl.timeTakenMs) FROM StudyLog sl " +
            "WHERE sl.userId = :userId " +
            "AND sl.timeTakenMs IS NOT NULL")
-    Double getAverageStudyTime(@Param("userId") Long userId);
+    Double getAverageStudyTime(@Param("userId") UUID userId);
 
     /**
      * Get study streak data (days with at least one review)
@@ -117,8 +118,8 @@ public interface StudyLogRepository extends JpaRepository<StudyLog, Long> {
            "WHERE sl.userId = :userId " +
            "AND sl.reviewedAt >= :startDate")
     long countStudyDays(
-        @Param("userId") Long userId,
-        @Param("startDate") LocalDateTime startDate
+        @Param("userId") UUID userId,
+        @Param("startDate") Instant startDate
     );
     
     /**
@@ -126,19 +127,19 @@ public interface StudyLogRepository extends JpaRepository<StudyLog, Long> {
      * For statistics summary
      */
     @Query("SELECT COUNT(DISTINCT sl.cardId) FROM StudyLog sl WHERE sl.userId = :userId")
-    Long countDistinctCardsByUserId(@Param("userId") Long userId);
+    Long countDistinctCardsByUserId(@Param("userId") UUID userId);
     
     /**
      * Get study logs for heatmap (last N days)
      * For statistics heatmap visualization
      */
     @Query("SELECT sl FROM StudyLog sl WHERE sl.userId = :userId AND sl.reviewedAt >= :startDate")
-    List<StudyLog> findByUserIdAndReviewedAtAfter(@Param("userId") Long userId, @Param("startDate") LocalDateTime startDate);
+    List<StudyLog> findByUserIdAndReviewedAtAfter(@Param("userId") UUID userId, @Param("startDate") Instant startDate);
     
     /**
      * Get all study logs for user (for streak calculation)
      * Ordered by most recent first
      */
     @Query("SELECT sl FROM StudyLog sl WHERE sl.userId = :userId ORDER BY sl.reviewedAt DESC")
-    List<StudyLog> findAllByUserIdOrderByReviewedAtDesc(@Param("userId") Long userId);
+    List<StudyLog> findAllByUserIdOrderByReviewedAtDesc(@Param("userId") UUID userId);
 }

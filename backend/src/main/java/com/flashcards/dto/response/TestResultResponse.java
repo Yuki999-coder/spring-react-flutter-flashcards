@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * Response DTO for test result
@@ -16,13 +16,13 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TestResultResponse {
-    private Long id;
-    private Long deckId;
+    private String id;
+    private String deckId;
     private BigDecimal score;
     private Integer correctCount;
     private Integer wrongCount;
     private Integer skippedCount;
     private Integer totalQuestions;
     private Integer durationSeconds;
-    private LocalDateTime submittedAt;
+    private Instant submittedAt;
 }

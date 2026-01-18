@@ -25,6 +25,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Deck Controller
@@ -93,7 +94,7 @@ public class DeckController {
     @GetMapping("/{id}")
     public ResponseEntity<DeckResponse> getDeckById(
             @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long id) {
+            @PathVariable UUID id) {
         
         User user = getCurrentUser(userDetails);
         log.info("GET /api/v1/decks/{} - userId: {}", id, user.getId());
@@ -115,7 +116,7 @@ public class DeckController {
     @PutMapping("/{id}")
     public ResponseEntity<DeckResponse> updateDeck(
             @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long id,
+            @PathVariable UUID id,
             @Valid @RequestBody UpdateDeckRequest request) {
         
         User user = getCurrentUser(userDetails);
@@ -137,7 +138,7 @@ public class DeckController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteDeck(
             @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long id) {
+            @PathVariable UUID id) {
         
         User user = getCurrentUser(userDetails);
         log.info("DELETE /api/v1/decks/{} - userId: {}", id, user.getId());
@@ -178,7 +179,7 @@ public class DeckController {
     @PostMapping("/{deckId}/import")
     public ResponseEntity<ImportResultDTO> importCards(
             @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long deckId,
+            @PathVariable UUID deckId,
             @Valid @RequestBody ImportCardsRequest request) {
         
         User user = getCurrentUser(userDetails);
@@ -200,7 +201,7 @@ public class DeckController {
     @GetMapping("/{deckId}/export/csv")
     public ResponseEntity<String> exportToCSV(
             @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long deckId) {
+            @PathVariable UUID deckId) {
         
         User user = getCurrentUser(userDetails);
         log.info("GET /api/v1/decks/{}/export/csv - userId: {}", deckId, user.getId());
@@ -227,7 +228,7 @@ public class DeckController {
     @GetMapping("/{deckId}/export/quizlet")
     public ResponseEntity<String> exportToQuizlet(
             @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long deckId) {
+            @PathVariable UUID deckId) {
         
         User user = getCurrentUser(userDetails);
         log.info("GET /api/v1/decks/{}/export/quizlet - userId: {}", deckId, user.getId());
@@ -254,7 +255,7 @@ public class DeckController {
     @GetMapping("/{deckId}/cards/difficult")
     public ResponseEntity<List<CardResponse>> getDifficultCards(
             @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long deckId) {
+            @PathVariable UUID deckId) {
         
         User user = getCurrentUser(userDetails);
         log.info("GET /api/v1/decks/{}/cards/difficult - userId: {}", deckId, user.getId());
@@ -275,7 +276,7 @@ public class DeckController {
     @GetMapping("/{deckId}/cards/difficult/count")
     public ResponseEntity<Long> countDifficultCards(
             @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long deckId) {
+            @PathVariable UUID deckId) {
         
         User user = getCurrentUser(userDetails);
         log.info("GET /api/v1/decks/{}/cards/difficult/count - userId: {}", deckId, user.getId());
@@ -292,7 +293,7 @@ public class DeckController {
     @PostMapping("/{id}/view")
     public ResponseEntity<Void> updateDeckLastViewed(
             @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long id) {
+            @PathVariable UUID id) {
         User user = getCurrentUser(userDetails);
         log.info("POST /api/v1/decks/{}/view - Updating last viewed: user={}", id, user.getId());
         

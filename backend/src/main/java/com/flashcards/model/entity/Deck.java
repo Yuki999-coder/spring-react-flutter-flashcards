@@ -5,38 +5,34 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.Where;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.util.UUID;
 
 /**
  * Deck Entity
  * Represents a collection of flashcards
- * Supports soft delete functionality
+ * Extends BaseEntity for UUID primary key and audit fields
+ * Supports soft delete via deletedAt field
  */
 @Entity
 @Table(name = "decks")
-@SQLDelete(sql = "UPDATE decks SET is_deleted = true WHERE id = ?")
-@Where(clause = "is_deleted = false")
+@Where(clause = "deleted_at IS NULL")
 @Data
+@EqualsAndHashCode(callSuper = true)
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Deck {
+public class Deck extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    @Column(name = "user_id", nullable = false, columnDefinition = "uuid")
+    private UUID userId;
     
-    @Column(name = "folder_id")
-    private Long folderId;
+    @Column(name = "folder_id", columnDefinition = "uuid")
+    private UUID folderId;
 
     @Column(nullable = false, length = 255)
     private String title;
@@ -52,20 +48,8 @@ public class Deck {
     @Column(name = "source_id", length = 255)
     private String sourceId;
 
-    @Column(name = "is_deleted", nullable = false)
-    @Builder.Default
-    private Boolean isDeleted = false;
-
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
-
     @Column(name = "last_viewed_at")
-    private LocalDateTime lastViewedAt;
+    private Instant lastViewedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", insertable = false, updatable = false)

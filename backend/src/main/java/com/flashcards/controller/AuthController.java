@@ -71,7 +71,7 @@ public class AuthController {
         // Generate JWT token
         String token = jwtUtils.generateToken(savedUser.getEmail());
 
-        AuthResponse response = AuthResponse.of(token, savedUser.getId(), savedUser.getEmail());
+        AuthResponse response = AuthResponse.of(token, savedUser.getId().toString(), savedUser.getEmail());
         response.setMessage("User registered successfully");
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -113,7 +113,7 @@ public class AuthController {
 
             log.info("User logged in successfully: id={}, email={}", user.getId(), user.getEmail());
 
-            AuthResponse response = AuthResponse.of(token, user.getId(), user.getEmail());
+            AuthResponse response = AuthResponse.of(token, user.getId().toString(), user.getEmail());
             response.setMessage("Login successful");
 
             return ResponseEntity.ok(response);
@@ -144,7 +144,7 @@ public class AuthController {
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
             AuthResponse response = AuthResponse.builder()
-                    .userId(user.getId())
+                    .userId(user.getId().toString())
                     .email(user.getEmail())
                     .message("Token is valid")
                     .build();
@@ -175,7 +175,7 @@ public class AuthController {
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
             AuthResponse response = AuthResponse.builder()
-                    .userId(user.getId())
+                    .userId(user.getId().toString())
                     .email(user.getEmail())
                     .build();
 

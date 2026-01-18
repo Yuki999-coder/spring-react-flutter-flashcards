@@ -21,7 +21,7 @@ import java.math.BigDecimal;
 public class CreateTestResultRequest {
 
     @NotNull(message = "Deck ID is required")
-    private Long deckId;
+    private String deckId;
 
     @NotNull(message = "Score is required")
     @DecimalMin(value = "0.0", message = "Score must be at least 0")

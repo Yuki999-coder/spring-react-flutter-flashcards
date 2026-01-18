@@ -7,34 +7,34 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Folder Repository
- * Data access layer for Folder entity
+ * Data access layer for Folder entity (UUID primary key)
+ * Soft delete handled by @Where clause in entity
  */
 @Repository
-public interface FolderRepository extends JpaRepository<Folder, Long> {
+public interface FolderRepository extends JpaRepository<Folder, UUID> {
     
     /**
      * Find all folders by user ID (excluding soft-deleted)
+     * @Where clause automatically filters deleted_at IS NULL
      */
-    @Query("SELECT f FROM Folder f WHERE f.userId = :userId AND f.isDeleted = false ORDER BY f.createdAt DESC")
-    List<Folder> findByUserId(@Param("userId") Long userId);
+    List<Folder> findByUserIdOrderByCreatedAtDesc(UUID userId);
     
     /**
      * Find folder by ID and user ID (security check)
      */
-    @Query("SELECT f FROM Folder f WHERE f.id = :folderId AND f.userId = :userId AND f.isDeleted = false")
-    Optional<Folder> findByIdAndUserId(@Param("folderId") Long folderId, @Param("userId") Long userId);
+    Optional<Folder> findByIdAndUserId(UUID folderId, UUID userId);
     
     /**
      * Count folders by user ID
      */
-    @Query("SELECT COUNT(f) FROM Folder f WHERE f.userId = :userId AND f.isDeleted = false")
-    Long countByUserId(@Param("userId") Long userId);
+    Long countByUserId(UUID userId);
     
     /**
      * Update last viewed timestamp without triggering updatedAt
@@ -47,9 +47,9 @@ public interface FolderRepository extends JpaRepository<Folder, Long> {
      */
     @Modifying
     @Query(value = "UPDATE folders SET last_viewed_at = :lastViewedAt " +
-                   "WHERE id = :id AND user_id = :userId AND is_deleted = false", 
+                   "WHERE id = CAST(:id AS uuid) AND user_id = CAST(:userId AS uuid) AND deleted_at IS NULL", 
            nativeQuery = true)
-    int updateLastViewedAt(@Param("id") Long id, 
-                           @Param("userId") Long userId, 
-                           @Param("lastViewedAt") LocalDateTime lastViewedAt);
+    int updateLastViewedAt(@Param("id") UUID id, 
+                           @Param("userId") UUID userId, 
+                           @Param("lastViewedAt") Instant lastViewedAt);
 }

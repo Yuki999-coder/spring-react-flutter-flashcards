@@ -17,14 +17,14 @@ public class AuthResponse {
 
     private String token;
     private String type = "Bearer";
-    private Long userId;
+    private String userId;
     private String email;
     private String message;
 
     /**
      * Create AuthResponse with token and user info
      */
-    public static AuthResponse of(String token, Long userId, String email) {
+    public static AuthResponse of(String token, String userId, String email) {
         return AuthResponse.builder()
                 .token(token)
                 .type("Bearer")

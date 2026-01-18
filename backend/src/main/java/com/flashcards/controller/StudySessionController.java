@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -46,7 +47,7 @@ public class StudySessionController {
 
         StudySession session = studySessionService.createStudySession(
                 user,
-                request.getDeckId(),
+                request.getDeckId() != null ? UUID.fromString(request.getDeckId()) : null,
                 request.getMode(),
                 request.getStartTime(),
                 request.getEndTime(),
@@ -121,9 +122,9 @@ public class StudySessionController {
      */
     private StudySessionResponse toResponse(StudySession session) {
         return StudySessionResponse.builder()
-                .id(session.getId())
-                .userId(session.getUserId())
-                .deckId(session.getDeckId())
+                .id(session.getId().toString())
+                .userId(session.getUserId().toString())
+                .deckId(session.getDeckId() != null ? session.getDeckId().toString() : null)
                 .mode(session.getMode())
                 .startTime(session.getStartTime())
                 .endTime(session.getEndTime())

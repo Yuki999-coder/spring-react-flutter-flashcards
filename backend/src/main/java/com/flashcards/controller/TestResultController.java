@@ -16,6 +16,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -52,7 +53,7 @@ public class TestResultController {
     @GetMapping("/deck/{deckId}")
     public ResponseEntity<List<TestResultResponse>> getTestResultsByDeck(
             @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long deckId) {
+            @PathVariable UUID deckId) {
         
         User user = userDetailsService.getUserByEmail(userDetails.getUsername());
         log.info("GET /api/v1/test-results/deck/{} - userId: {}", deckId, user.getId());
@@ -84,8 +85,8 @@ public class TestResultController {
      */
     private TestResultResponse toResponse(TestResult result) {
         return TestResultResponse.builder()
-                .id(result.getId())
-                .deckId(result.getDeckId())
+                .id(result.getId().toString())
+                .deckId(result.getDeckId().toString())
                 .score(result.getScore())
                 .correctCount(result.getCorrectCount())
                 .wrongCount(result.getWrongCount())

@@ -17,6 +17,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Folder Controller
@@ -72,7 +73,7 @@ public class FolderController {
     @GetMapping("/{id}")
     public ResponseEntity<FolderResponse> getFolderById(
             @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long id,
+            @PathVariable UUID id,
             @RequestParam(defaultValue = "true") boolean includeDecks) {
         User user = getCurrentUser(userDetails);
         log.info("GET /api/v1/folders/{} - Fetching folder: user={}", id, user.getId());
@@ -89,7 +90,7 @@ public class FolderController {
     @PutMapping("/{id}")
     public ResponseEntity<FolderResponse> updateFolder(
             @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long id,
+            @PathVariable UUID id,
             @Valid @RequestBody UpdateFolderRequest request) {
         User user = getCurrentUser(userDetails);
         log.info("PUT /api/v1/folders/{} - Updating folder: user={}", id, user.getId());
@@ -106,7 +107,7 @@ public class FolderController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteFolder(
             @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long id) {
+            @PathVariable UUID id) {
         User user = getCurrentUser(userDetails);
         log.info("DELETE /api/v1/folders/{} - Deleting folder: user={}", id, user.getId());
         
@@ -122,8 +123,8 @@ public class FolderController {
     @PostMapping("/{folderId}/decks/{deckId}")
     public ResponseEntity<Void> addDeckToFolder(
             @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long folderId,
-            @PathVariable Long deckId) {
+            @PathVariable UUID folderId,
+            @PathVariable UUID deckId) {
         User user = getCurrentUser(userDetails);
         log.info("POST /api/v1/folders/{}/decks/{} - Adding deck to folder: user={}", 
                 folderId, deckId, user.getId());
@@ -140,7 +141,7 @@ public class FolderController {
     @DeleteMapping("/decks/{deckId}")
     public ResponseEntity<Void> removeDeckFromFolder(
             @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long deckId) {
+            @PathVariable UUID deckId) {
         User user = getCurrentUser(userDetails);
         log.info("DELETE /api/v1/folders/decks/{} - Removing deck from folder: user={}", 
                 deckId, user.getId());
@@ -157,7 +158,7 @@ public class FolderController {
     @PostMapping("/{id}/view")
     public ResponseEntity<Void> updateFolderLastViewed(
             @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long id) {
+            @PathVariable UUID id) {
         User user = getCurrentUser(userDetails);
         log.info("POST /api/v1/folders/{}/view - Updating last viewed: user={}", id, user.getId());
         

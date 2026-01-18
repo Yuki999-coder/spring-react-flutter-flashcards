@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * Response DTO for Deck
@@ -17,15 +17,15 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class DeckResponse {
 
-    private Long id;
-    private Long userId;
-    private Long folderId;
+    private String id;
+    private String userId;
+    private String folderId;
     private String title;
     private String description;
     private SourceType sourceType;
     private String sourceId;
     private Integer cardCount;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    private LocalDateTime lastViewedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
+    private Instant lastViewedAt;
 }

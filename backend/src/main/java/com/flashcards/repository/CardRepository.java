@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Card Repository
@@ -16,7 +17,7 @@ import java.util.Optional;
  * Note: Soft delete is handled automatically by @Where clause in Entity
  */
 @Repository
-public interface CardRepository extends JpaRepository<Card, Long> {
+public interface CardRepository extends JpaRepository<Card, UUID> {
 
     /**
      * Find all cards in a deck with ownership verification
@@ -32,12 +33,10 @@ public interface CardRepository extends JpaRepository<Card, Long> {
            "INNER JOIN Deck d ON c.deckId = d.id " +
            "WHERE c.deckId = :deckId " +
            "AND d.userId = :userId " +
-           "AND c.isDeleted = false " +
-           "AND d.isDeleted = false " +
            "ORDER BY c.position ASC")
     List<Card> findAllByDeckIdAndDeckUserIdOrderByPositionAsc(
-        @Param("deckId") Long deckId,
-        @Param("userId") Long userId
+        @Param("deckId") UUID deckId,
+        @Param("userId") UUID userId
     );
 
     /**
@@ -51,12 +50,10 @@ public interface CardRepository extends JpaRepository<Card, Long> {
     @Query("SELECT c FROM Card c " +
            "INNER JOIN Deck d ON c.deckId = d.id " +
            "WHERE c.id = :id " +
-           "AND d.userId = :userId " +
-           "AND c.isDeleted = false " +
-           "AND d.isDeleted = false")
+           "AND d.userId = :userId")
     Optional<Card> findByIdAndDeckUserId(
-        @Param("id") Long id,
-        @Param("userId") Long userId
+        @Param("id") UUID id,
+        @Param("userId") UUID userId
     );
 
     /**
@@ -65,7 +62,7 @@ public interface CardRepository extends JpaRepository<Card, Long> {
      * @param deckId Deck ID
      * @return Number of cards (excluding soft-deleted)
      */
-    long countByDeckId(Long deckId);
+    long countByDeckId(UUID deckId);
 
     /**
      * Find cards by deck ID (no user verification)
@@ -74,7 +71,7 @@ public interface CardRepository extends JpaRepository<Card, Long> {
      * @param deckId Deck ID
      * @return List of cards ordered by position
      */
-    List<Card> findAllByDeckIdOrderByPositionAsc(Long deckId);
+    List<Card> findAllByDeckIdOrderByPositionAsc(UUID deckId);
 
     /**
      * Find all cards owned by a user (across all decks)
@@ -85,10 +82,8 @@ public interface CardRepository extends JpaRepository<Card, Long> {
      */
     @Query("SELECT c FROM Card c " +
            "INNER JOIN Deck d ON c.deckId = d.id " +
-           "WHERE d.userId = :userId " +
-           "AND c.isDeleted = false " +
-           "AND d.isDeleted = false")
-    List<Card> findAllByDeck_User_Id(@Param("userId") Long userId);
+           "WHERE d.userId = :userId")
+    List<Card> findAllByDeck_User_Id(@Param("userId") UUID userId);
 
     /**
      * Find difficult cards in a deck for cram mode
@@ -104,13 +99,11 @@ public interface CardRepository extends JpaRepository<Card, Long> {
            "LEFT JOIN CardProgress cp ON c.id = cp.cardId AND cp.userId = :userId " +
            "WHERE c.deckId = :deckId " +
            "AND d.userId = :userId " +
-           "AND c.isDeleted = false " +
-           "AND d.isDeleted = false " +
            "AND (cp.easeFactor < 2.1 OR cp.learningState = 'RELEARNING') " +
            "ORDER BY c.position ASC")
     List<Card> findDifficultCardsByDeckIdAndUserId(
-        @Param("deckId") Long deckId,
-        @Param("userId") Long userId
+        @Param("deckId") UUID deckId,
+        @Param("userId") UUID userId
     );
 
     /**
@@ -126,12 +119,10 @@ public interface CardRepository extends JpaRepository<Card, Long> {
            "LEFT JOIN CardProgress cp ON c.id = cp.cardId AND cp.userId = :userId " +
            "WHERE c.deckId = :deckId " +
            "AND d.userId = :userId " +
-           "AND c.isDeleted = false " +
-           "AND d.isDeleted = false " +
            "AND (cp.easeFactor < 2.1 OR cp.learningState = 'RELEARNING')")
     long countDifficultCardsByDeckIdAndUserId(
-        @Param("deckId") Long deckId,
-        @Param("userId") Long userId
+        @Param("deckId") UUID deckId,
+        @Param("userId") UUID userId
     );
     
     /**
@@ -146,12 +137,10 @@ public interface CardRepository extends JpaRepository<Card, Long> {
     @Query("SELECT c FROM Card c " +
            "INNER JOIN Deck d ON c.deckId = d.id " +
            "WHERE d.userId = :userId " +
-           "AND c.isDeleted = false " +
-           "AND d.isDeleted = false " +
            "AND (LOWER(c.term) LIKE LOWER(CONCAT('%', :searchTerm, '%')) " +
            "OR LOWER(c.definition) LIKE LOWER(CONCAT('%', :searchTerm, '%')) " +
            "OR LOWER(c.example) LIKE LOWER(CONCAT('%', :searchTerm, '%')))")
-    List<Card> searchCards(@Param("userId") Long userId, 
+    List<Card> searchCards(@Param("userId") UUID userId, 
                            @Param("searchTerm") String searchTerm,
                            Pageable pageable);
     
@@ -165,11 +154,9 @@ public interface CardRepository extends JpaRepository<Card, Long> {
     @Query("SELECT COUNT(c) FROM Card c " +
            "INNER JOIN Deck d ON c.deckId = d.id " +
            "WHERE d.userId = :userId " +
-           "AND c.isDeleted = false " +
-           "AND d.isDeleted = false " +
            "AND (LOWER(c.term) LIKE LOWER(CONCAT('%', :searchTerm, '%')) " +
            "OR LOWER(c.definition) LIKE LOWER(CONCAT('%', :searchTerm, '%')) " +
            "OR LOWER(c.example) LIKE LOWER(CONCAT('%', :searchTerm, '%')))")
-    long countSearchCards(@Param("userId") Long userId, 
+    long countSearchCards(@Param("userId") UUID userId, 
                           @Param("searchTerm") String searchTerm);
 }

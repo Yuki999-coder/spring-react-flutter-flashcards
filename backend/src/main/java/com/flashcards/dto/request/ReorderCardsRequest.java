@@ -18,9 +18,9 @@ import java.util.List;
 public class ReorderCardsRequest {
 
     /**
-     * List of card IDs in the new order
+     * List of card IDs in the new order (as Strings for UUID serialization)
      * Index in the list represents the new position
      */
     @NotNull(message = "Card IDs are required")
-    private List<Long> cardIds;
+    private List<String> cardIds;
 }

@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -112,7 +113,7 @@ public class ReviewController {
     @PostMapping("/cards/{cardId}/review")
     public ResponseEntity<ReviewResponse> reviewCard(
             @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long cardId,
+            @PathVariable UUID cardId,
             @Valid @RequestBody ReviewRequest request) {
         
         User user = getCurrentUser(userDetails);
@@ -149,7 +150,7 @@ public class ReviewController {
     @PostMapping("/cards/{cardId}/record-progress")
     public ResponseEntity<ReviewResponse> recordProgress(
             @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long cardId,
+            @PathVariable UUID cardId,
             @Valid @RequestBody RecordProgressRequest request) {
         
         User user = getCurrentUser(userDetails);
@@ -190,7 +191,7 @@ public class ReviewController {
     @GetMapping("/cards/{cardId}/progress")
     public ResponseEntity<ReviewResponse> getCardProgress(
             @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long cardId) {
+            @PathVariable UUID cardId) {
         
         User user = getCurrentUser(userDetails);
         log.info("GET /api/v1/cards/{}/progress - userId: {}", cardId, user.getId());
@@ -250,16 +251,16 @@ public class ReviewController {
                 progress.getCardId(), progress.getId(), e.getMessage());
             // Create minimal card response if fetch fails
             cardResponse = CardResponse.builder()
-                .id(progress.getCardId())
+                .id(progress.getCardId().toString())
                 .term("Card not found")
                 .definition("This card may have been deleted")
                 .build();
         }
         
         return ReviewResponse.builder()
-                .id(progress.getId())
-                .userId(progress.getUserId())
-                .cardId(progress.getCardId())
+                .id(progress.getId().toString())
+                .userId(progress.getUserId().toString())
+                .cardId(progress.getCardId().toString())
                 .learningState(progress.getLearningState())
                 .nextReview(progress.getNextReview())
                 .interval(progress.getInterval())

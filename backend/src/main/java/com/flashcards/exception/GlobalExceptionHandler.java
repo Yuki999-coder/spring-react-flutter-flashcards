@@ -10,6 +10,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,7 +36,7 @@ public class GlobalExceptionHandler {
         log.warn("CardNotFoundException: {} - Path: {}", ex.getMessage(), request.getRequestURI());
 
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
+                .timestamp(Instant.now())
                 .status(HttpStatus.NOT_FOUND.value())
                 .error(HttpStatus.NOT_FOUND.getReasonPhrase())
                 .message(ex.getMessage())
@@ -57,7 +58,7 @@ public class GlobalExceptionHandler {
         log.warn("DeckNotFoundException: {} - Path: {}", ex.getMessage(), request.getRequestURI());
 
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
+                .timestamp(Instant.now())
                 .status(HttpStatus.NOT_FOUND.value())
                 .error(HttpStatus.NOT_FOUND.getReasonPhrase())
                 .message(ex.getMessage())
@@ -79,7 +80,7 @@ public class GlobalExceptionHandler {
         log.warn("FolderNotFoundException: {} - Path: {}", ex.getMessage(), request.getRequestURI());
 
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
+                .timestamp(Instant.now())
                 .status(HttpStatus.NOT_FOUND.value())
                 .error(HttpStatus.NOT_FOUND.getReasonPhrase())
                 .message(ex.getMessage())
@@ -101,7 +102,7 @@ public class GlobalExceptionHandler {
         log.warn("UnauthorizedException: {} - Path: {}", ex.getMessage(), request.getRequestURI());
 
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
+                .timestamp(Instant.now())
                 .status(HttpStatus.FORBIDDEN.value())
                 .error(HttpStatus.FORBIDDEN.getReasonPhrase())
                 .message(ex.getMessage())
@@ -132,7 +133,7 @@ public class GlobalExceptionHandler {
         String message = "Validation failed: " + errors.toString();
 
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
+                .timestamp(Instant.now())
                 .status(HttpStatus.BAD_REQUEST.value())
                 .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
                 .message(message)
@@ -154,7 +155,7 @@ public class GlobalExceptionHandler {
         log.warn("IllegalArgumentException: {} - Path: {}", ex.getMessage(), request.getRequestURI());
 
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
+                .timestamp(Instant.now())
                 .status(HttpStatus.BAD_REQUEST.value())
                 .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
                 .message(ex.getMessage())
@@ -176,7 +177,7 @@ public class GlobalExceptionHandler {
         log.error("Unhandled exception: {} - Path: {}", ex.getMessage(), request.getRequestURI(), ex);
 
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
+                .timestamp(Instant.now())
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .error(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
                 .message("An internal error occurred. Please try again later.")

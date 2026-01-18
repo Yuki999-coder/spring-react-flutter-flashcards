@@ -4,28 +4,28 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.Where;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Folder Entity
  * Represents a folder to organize decks
+ * Extends BaseEntity for UUID primary key and audit fields
  */
 @Entity
 @Table(name = "folders")
+@Where(clause = "deleted_at IS NULL")
 @Data
+@EqualsAndHashCode(callSuper = true)
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Folder {
-    
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Folder extends BaseEntity {
     
     @Column(nullable = false)
     private String name;
@@ -33,25 +33,17 @@ public class Folder {
     @Column(columnDefinition = "TEXT")
     private String description;
     
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
-    
-    @Column(name = "created_at", nullable = false, updatable = false)
-    @CreationTimestamp
-    private LocalDateTime createdAt;
-    
-    @Column(name = "updated_at")
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
+    @Column(name = "user_id", nullable = false, columnDefinition = "uuid")
+    private UUID userId;
     
     @Column(name = "last_viewed_at")
-    private LocalDateTime lastViewedAt;
-    
-    @Column(name = "is_deleted", nullable = false)
-    @Builder.Default
-    private Boolean isDeleted = false;
+    private Instant lastViewedAt;
     
     // One-to-Many relationship with Deck
     @OneToMany(mappedBy = "folder", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Deck> decks;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    private User user;
 }

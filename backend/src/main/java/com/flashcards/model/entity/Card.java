@@ -5,37 +5,32 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Type;
-import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.Where;
 
-import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Card Entity
  * Represents a flashcard with term, definition, and multimedia content
- * Supports soft delete functionality
+ * Extends BaseEntity for UUID primary key and audit fields
+ * Supports soft delete via deletedAt field
  */
 @Entity
 @Table(name = "cards")
-@SQLDelete(sql = "UPDATE cards SET is_deleted = true WHERE id = ?")
-@Where(clause = "is_deleted = false")
+@Where(clause = "deleted_at IS NULL")
 @Data
+@EqualsAndHashCode(callSuper = true)
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Card {
+public class Card extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(name = "deck_id", nullable = false)
-    private Long deckId;
+    @Column(name = "deck_id", nullable = false, columnDefinition = "uuid")
+    private UUID deckId;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String term;
@@ -66,18 +61,6 @@ public class Card {
     @Column(name = "is_starred", nullable = false)
     @Builder.Default
     private Boolean isStarred = false;
-
-    @Column(name = "is_deleted", nullable = false)
-    @Builder.Default
-    private Boolean isDeleted = false;
-
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "deck_id", insertable = false, updatable = false)

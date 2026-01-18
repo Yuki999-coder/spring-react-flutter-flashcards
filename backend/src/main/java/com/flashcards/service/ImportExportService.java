@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
 @Slf4j
@@ -32,7 +33,7 @@ public class ImportExportService {
      * Supports multiple delimiters: Tab, Comma, Semicolon
      */
     @Transactional
-    public ImportResultDTO importCards(User user, Long deckId, ImportCardsRequest request) {
+    public ImportResultDTO importCards(User user, UUID deckId, ImportCardsRequest request) {
         // Verify deck ownership
         Deck deck = deckRepository.findByIdAndUserId(deckId, user.getId())
                 .orElseThrow(() -> new RuntimeException("Deck not found or access denied"));
@@ -85,7 +86,7 @@ public class ImportExportService {
                 
                 // Create card using CardService
                 CreateCardRequest cardRequest = CreateCardRequest.builder()
-                        .deckId(deckId)
+                        .deckId(deckId.toString())
                         .term(term)
                         .definition(definition)
                         .build();
@@ -115,7 +116,7 @@ public class ImportExportService {
     /**
      * Export cards to CSV format
      */
-    public String exportToCSV(User user, Long deckId) {
+    public String exportToCSV(User user, UUID deckId) {
         // Verify deck ownership
         Deck deck = deckRepository.findByIdAndUserId(deckId, user.getId())
                 .orElseThrow(() -> new RuntimeException("Deck not found or access denied"));
@@ -141,7 +142,7 @@ public class ImportExportService {
     /**
      * Export cards to Quizlet format (Tab-delimited)
      */
-    public String exportToQuizlet(User user, Long deckId) {
+    public String exportToQuizlet(User user, UUID deckId) {
         // Verify deck ownership
         Deck deck = deckRepository.findByIdAndUserId(deckId, user.getId())
                 .orElseThrow(() -> new RuntimeException("Deck not found or access denied"));

@@ -31,7 +31,7 @@ public class DueCardsSummaryResponse {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class DeckDueInfo {
-        private Long deckId;
+        private String deckId;
         private String deckTitle;
         private Integer dueCount;
     }

@@ -7,7 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * Request DTO for creating a study session
@@ -18,16 +18,16 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class CreateStudySessionRequest {
 
-    private Long deckId;
+    private String deckId;
 
     @NotNull(message = "Study mode is required")
     private StudyMode mode;
 
     @NotNull(message = "Start time is required")
-    private LocalDateTime startTime;
+    private Instant startTime;
 
     @NotNull(message = "End time is required")
-    private LocalDateTime endTime;
+    private Instant endTime;
 
     private Integer cardsStudied;
 }

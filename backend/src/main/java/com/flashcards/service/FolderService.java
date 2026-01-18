@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -43,7 +44,6 @@ public class FolderService {
                 .name(request.getName())
                 .description(request.getDescription())
                 .userId(user.getId())
-                .isDeleted(false)
                 .build();
         
         Folder savedFolder = folderRepository.save(folder);
@@ -59,7 +59,7 @@ public class FolderService {
     public List<FolderResponse> getAllFolders(User user, boolean includeDecks) {
         log.info("Fetching folders for user: userId={}", user.getId());
         
-        List<Folder> folders = folderRepository.findByUserId(user.getId());
+        List<Folder> folders = folderRepository.findByUserIdOrderByCreatedAtDesc(user.getId());
         
         return folders.stream()
                 .map(folder -> toFolderResponse(folder, includeDecks))
@@ -70,7 +70,7 @@ public class FolderService {
      * Get folder by ID
      */
     @Transactional(readOnly = true)
-    public FolderResponse getFolderById(User user, Long folderId, boolean includeDecks) {
+    public FolderResponse getFolderById(User user, UUID folderId, boolean includeDecks) {
         log.info("Fetching folder: folderId={}, userId={}", folderId, user.getId());
         
         Folder folder = verifyFolderOwnership(user.getId(), folderId);
@@ -82,7 +82,7 @@ public class FolderService {
      * Update folder
      */
     @Transactional
-    public FolderResponse updateFolder(User user, Long folderId, UpdateFolderRequest request) {
+    public FolderResponse updateFolder(User user, UUID folderId, UpdateFolderRequest request) {
         log.info("Updating folder: folderId={}, name={}", folderId, request.getName());
         
         Folder folder = verifyFolderOwnership(user.getId(), folderId);
@@ -101,7 +101,7 @@ public class FolderService {
      * Decks inside will be moved to uncategorized (folderId = null)
      */
     @Transactional
-    public void deleteFolder(User user, Long folderId) {
+    public void deleteFolder(User user, UUID folderId) {
         log.info("Deleting folder: folderId={}, userId={}", folderId, user.getId());
         
         Folder folder = verifyFolderOwnership(user.getId(), folderId);
@@ -116,7 +116,7 @@ public class FolderService {
         log.info("Moved {} decks out of folder {}", decksInFolder.size(), folderId);
         
         // Soft delete folder
-        folder.setIsDeleted(true);
+        folder.softDelete();
         folderRepository.save(folder);
         
         log.info("Folder deleted: id={}", folderId);
@@ -126,7 +126,7 @@ public class FolderService {
      * Add deck to folder
      */
     @Transactional
-    public void addDeckToFolder(User user, Long folderId, Long deckId) {
+    public void addDeckToFolder(User user, UUID folderId, UUID deckId) {
         log.info("Adding deck to folder: deckId={}, folderId={}", deckId, folderId);
         
         // Verify folder ownership
@@ -146,7 +146,7 @@ public class FolderService {
      * Remove deck from folder
      */
     @Transactional
-    public void removeDeckFromFolder(User user, Long deckId) {
+    public void removeDeckFromFolder(User user, UUID deckId) {
         log.info("Removing deck from folder: deckId={}", deckId);
         
         Deck deck = deckRepository.findByIdAndUserId(deckId, user.getId())
@@ -177,14 +177,14 @@ public class FolderService {
      * Uses native query to avoid triggering @UpdateTimestamp on updatedAt
      */
     @Transactional
-    public void updateLastViewed(User user, Long folderId) {
+    public void updateLastViewed(User user, UUID folderId) {
         log.info("Updating folder last viewed: folderId={}, userId={}", folderId, user.getId());
         
         // Use native query to update only last_viewed_at without triggering updated_at
         int rowsUpdated = folderRepository.updateLastViewedAt(
             folderId, 
             user.getId(), 
-            java.time.LocalDateTime.now()
+            java.time.Instant.now()
         );
         
         if (rowsUpdated == 0) {
@@ -198,7 +198,7 @@ public class FolderService {
     /**
      * Verify folder ownership
      */
-    private Folder verifyFolderOwnership(Long userId, Long folderId) {
+    private Folder verifyFolderOwnership(UUID userId, UUID folderId) {
         return folderRepository.findByIdAndUserId(folderId, userId)
                 .orElseThrow(() -> new FolderNotFoundException("Folder not found or access denied"));
     }
@@ -208,10 +208,10 @@ public class FolderService {
      */
     private FolderResponse toFolderResponse(Folder folder, boolean includeDecks) {
         FolderResponse.FolderResponseBuilder builder = FolderResponse.builder()
-                .id(folder.getId())
+                .id(folder.getId().toString())
                 .name(folder.getName())
                 .description(folder.getDescription())
-                .userId(folder.getUserId())
+                .userId(folder.getUserId().toString())
                 .createdAt(folder.getCreatedAt())
                 .updatedAt(folder.getUpdatedAt())
                 .lastViewedAt(folder.getLastViewedAt());

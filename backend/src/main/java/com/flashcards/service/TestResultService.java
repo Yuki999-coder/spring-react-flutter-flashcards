@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Service for managing test results
@@ -31,7 +32,7 @@ public class TestResultService {
 
         TestResult result = TestResult.builder()
                 .userId(user.getId())
-                .deckId(request.getDeckId())
+                .deckId(UUID.fromString(request.getDeckId()))
                 .score(request.getScore())
                 .correctCount(request.getCorrectCount())
                 .wrongCount(request.getWrongCount())
@@ -46,14 +47,14 @@ public class TestResultService {
     /**
      * Get all test results for a user and deck
      */
-    public List<TestResult> getTestResultsByDeck(Long userId, Long deckId) {
+    public List<TestResult> getTestResultsByDeck(UUID userId, UUID deckId) {
         return testResultRepository.findByUserIdAndDeckIdOrderBySubmittedAtDesc(userId, deckId);
     }
 
     /**
      * Get all test results for a user
      */
-    public List<TestResult> getUserTestResults(Long userId) {
+    public List<TestResult> getUserTestResults(UUID userId) {
         return testResultRepository.findByUserIdOrderBySubmittedAtDesc(userId);
     }
 }

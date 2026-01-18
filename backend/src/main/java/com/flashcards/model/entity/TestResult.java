@@ -4,31 +4,31 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.util.UUID;
 
 /**
  * Entity representing a practice test result
+ * Extends BaseEntity for UUID primary key and audit fields
  */
 @Entity
 @Table(name = "test_results")
 @Data
+@EqualsAndHashCode(callSuper = true)
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TestResult {
+public class TestResult extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "user_id", nullable = false, columnDefinition = "uuid")
+    private UUID userId;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
-
-    @Column(name = "deck_id", nullable = false)
-    private Long deckId;
+    @Column(name = "deck_id", nullable = false, columnDefinition = "uuid")
+    private UUID deckId;
 
     @Column(nullable = false, precision = 5, scale = 2)
     private BigDecimal score; // Percentage score (0-100)
@@ -49,16 +49,12 @@ public class TestResult {
     private Integer durationSeconds;
 
     @Column(name = "submitted_at", nullable = false)
-    private LocalDateTime submittedAt;
-
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
+    private Instant submittedAt;
 
     @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
+    protected void setSubmittedAt() {
         if (submittedAt == null) {
-            submittedAt = LocalDateTime.now();
+            submittedAt = Instant.now();
         }
     }
 }
