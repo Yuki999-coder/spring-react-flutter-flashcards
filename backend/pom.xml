@@ -22,7 +22,7 @@
         <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <hypersistence-utils.version>3.7.0</hypersistence-utils.version>
+        <hypersistence-utils.version>3.7.3</hypersistence-utils.version>
         <jjwt.version>0.12.3</jjwt.version>
         <springdoc.version>2.3.0</springdoc.version>
     </properties>
