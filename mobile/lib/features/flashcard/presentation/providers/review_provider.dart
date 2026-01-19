@@ -34,6 +34,7 @@ class ReviewSession extends _$ReviewSession {
   Future<void> reviewCard({
     required String cardId,
     required Grade grade,
+    int? timeTakenSeconds,
   }) async {
     final cards = state.value ?? [];
     final cardIndex = cards.indexWhere((c) => c.id == cardId);
@@ -43,27 +44,16 @@ class ReviewSession extends _$ReviewSession {
     final card = cards[cardIndex];
     final repository = ref.read(flashcardRepositoryProvider);
 
-    // Calculate new SRS values using SM-2 algorithm
-    final result = SRSAlgorithm.calculateNext(
-      grade: grade,
-      currentInterval: card.interval ?? 0,
-      currentRepetitions: card.reviewCount ?? 0,
-      currentEaseFactor: card.easeFactor?.toDouble() ?? SRSAlgorithm.defaultEaseFactor,
-      currentLearningState: card.learningState ?? 'NEW',
-    );
-
-    final nextReviewDate = SRSAlgorithm.calculateNextReviewDate(result.newInterval);
-    final now = DateTime.now();
-
-    // Update card in database
-    await repository.updateCardSRS(
-      cardId: cardId,
-      learningState: result.newLearningState,
-      interval: result.newInterval,
-      easeFactor: result.newEaseFactor,
-      reviewCount: result.newRepetitions,
-      nextReview: nextReviewDate,
-      lastReviewed: now,
+    // Use the new saveReviewResult method
+    // This will:
+    // 1. Calculate new SRS values using SM-2 algorithm
+    // 2. Update card in database
+    // 3. Log review history to ReviewLog table
+    // 4. Set syncStatus = 2 (Updated) for sync
+    await repository.saveReviewResult(
+      card: card,
+      rating: grade.value,
+      timeTakenSeconds: timeTakenSeconds,
     );
 
     // Remove card from current session (it's been reviewed)

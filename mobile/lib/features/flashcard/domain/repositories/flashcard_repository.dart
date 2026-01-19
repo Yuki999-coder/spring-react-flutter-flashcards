@@ -91,6 +91,21 @@ abstract class FlashcardRepository {
     required DateTime lastReviewed,
   });
   
+  /// Save review result - Updates card SRS data AND logs review history
+  /// This is the recommended method to use when processing review results
+  /// 
+  /// Parameters:
+  /// - [card]: The card being reviewed
+  /// - [rating]: User's performance rating (0=Again, 2=Hard, 3=Good, 4=Easy)
+  /// - [timeTakenSeconds]: Optional time taken to review (for analytics)
+  /// 
+  /// Returns: Updated card with new SRS values
+  Future<Card> saveReviewResult({
+    required Card card,
+    required int rating,
+    int? timeTakenSeconds,
+  });
+  
   /// Get cards pending sync
   Future<List<Card>> getCardsPendingSync();
 }

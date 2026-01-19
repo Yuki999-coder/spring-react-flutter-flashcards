@@ -44,8 +44,10 @@ flutter run
 - **Progress Tracking**: Real-time statistics and accuracy
 - **Due Cards**: Automatic filtering of cards due for review
 - **Review Statistics**: Track performance during study sessions
+- **Review Logging**: Complete history tracking with ReviewLog table
+- **Time Tracking**: Measure review duration for analytics
 
-### ✅ Phase 5: Authentication & Sync (Completed - NEW!)
+### ✅ Phase 5: Authentication & Sync (Completed)
 - **LoginScreen**: Email & password authentication UI
 - **AuthRepository**: API calls to `POST /api/v1/auth/login`
 - **AuthProvider**: Riverpod state management for auth
@@ -54,7 +56,15 @@ flutter run
 - **Sync Integration**: Sync button in HomeScreen with auth check
 - **User Menu**: Account dropdown with logout functionality
 
-### ⏭️ Phase 6: Next Steps
+### ✅ Phase 6: SRS Enhancement (Completed - NEW!)
+- **ReviewLog Table**: Track review history for analytics
+- **SRSHelper**: Wrapper class for easy SM-2 algorithm access
+- **saveReviewResult()**: Single method for complete review processing
+- **Automatic Sync Trigger**: syncStatus=2 set on card review
+- **Time Tracking**: Capture review duration for each card
+- **Database Migration**: v1 → v2 with ReviewLogs table
+
+### ⏭️ Phase 7: Next Steps
 - **SyncService**: Full implementation of data synchronization
 - **Conflict Resolution**: Handle server/local data conflicts
 - **Background Sync**: Periodic automatic sync

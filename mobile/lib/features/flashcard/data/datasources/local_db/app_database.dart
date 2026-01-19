@@ -111,13 +111,57 @@ class Cards extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Review Log Table
+/// Tracks review history for analytics and statistics
+@DataClassName('ReviewLogEntity')
+class ReviewLogs extends Table {
+  /// Auto-increment ID
+  IntColumn get id => integer().autoIncrement()();
+  
+  /// Foreign key to Cards table
+  TextColumn get cardId => text().references(Cards, #id, onDelete: KeyAction.cascade)();
+  
+  /// Foreign key to Decks table (for easier querying)
+  TextColumn get deckId => text().references(Decks, #id, onDelete: KeyAction.cascade)();
+  
+  /// User ID who performed the review
+  TextColumn get userId => text()();
+  
+  /// User's rating: 0 = Again, 2 = Hard, 3 = Good, 4 = Easy
+  IntColumn get rating => integer()();
+  
+  /// Time taken to review in seconds
+  IntColumn get timeTakenSeconds => integer().nullable()();
+  
+  /// Interval BEFORE this review (days)
+  IntColumn get previousInterval => integer()();
+  
+  /// Interval AFTER this review (days)
+  IntColumn get newInterval => integer()();
+  
+  /// Ease Factor BEFORE this review
+  IntColumn get previousEaseFactor => integer()();
+  
+  /// Ease Factor AFTER this review
+  IntColumn get newEaseFactor => integer()();
+  
+  /// Learning state AFTER this review
+  TextColumn get learningState => text()();
+  
+  /// Review timestamp (ISO 8601 string)
+  TextColumn get reviewedAt => text()();
+  
+  /// Sync status: 0 = synced, 1 = pending
+  IntColumn get syncStatus => integer().withDefault(const Constant(1))();
+}
+
 /// Main Database Class
-@DriftDatabase(tables: [Decks, Cards])
+@DriftDatabase(tables: [Decks, Cards, ReviewLogs])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -125,7 +169,10 @@ class AppDatabase extends _$AppDatabase {
       await m.createAll();
     },
     onUpgrade: (Migrator m, int from, int to) async {
-      // Handle future migrations here
+      if (from < 2) {
+        // Migration from v1 to v2: Add ReviewLogs table
+        await m.createTable(reviewLogs);
+      }
     },
   );
 
@@ -259,9 +306,70 @@ class AppDatabase extends _$AppDatabase {
         nextReview: Value(nextReview),
         lastReviewed: Value(lastReviewed),
         localUpdatedAt: Value(DateTime.now().toIso8601String()),
-        syncStatus: const Value(1), // Mark as pending sync
+        syncStatus: const Value(2), // Mark as Updated (for sync)
       ),
     );
+  }
+
+  // ==================== REVIEW LOG QUERIES ====================
+  
+  /// Insert review log entry
+  Future<int> insertReviewLog(ReviewLogsCompanion logEntry) {
+    return into(reviewLogs).insert(logEntry);
+  }
+  
+  /// Get review history for a card
+  Future<List<ReviewLogEntity>> getReviewHistoryForCard(String cardId, {int? limit}) {
+    final query = select(reviewLogs)
+      ..where((tbl) => tbl.cardId.equals(cardId))
+      ..orderBy([(tbl) => OrderingTerm.desc(tbl.reviewedAt)]);
+    
+    if (limit != null) {
+      query.limit(limit);
+    }
+    
+    return query.get();
+  }
+  
+  /// Get review history for a deck
+  Future<List<ReviewLogEntity>> getReviewHistoryForDeck(String deckId, {int? limit}) {
+    final query = select(reviewLogs)
+      ..where((tbl) => tbl.deckId.equals(deckId))
+      ..orderBy([(tbl) => OrderingTerm.desc(tbl.reviewedAt)]);
+    
+    if (limit != null) {
+      query.limit(limit);
+    }
+    
+    return query.get();
+  }
+  
+  /// Get review logs pending sync
+  Future<List<ReviewLogEntity>> getReviewLogsPendingSync() {
+    return (select(reviewLogs)
+      ..where((tbl) => tbl.syncStatus.equals(1)))
+        .get();
+  }
+  
+  /// Get review statistics for a time period
+  Future<Map<String, int>> getReviewStats(String deckId, DateTime since) {
+    // This would ideally use SQL aggregation, simplified for now
+    // In production, use custom SQL query for better performance
+    return transaction(() async {
+      final logs = await (select(reviewLogs)
+        ..where((tbl) => 
+          tbl.deckId.equals(deckId) &
+          tbl.reviewedAt.isBiggerOrEqualValue(since.toIso8601String())))
+          .get();
+      
+      return {
+        'total': logs.length,
+        'again': logs.where((l) => l.rating == 0).length,
+        'hard': logs.where((l) => l.rating == 2).length,
+        'good': logs.where((l) => l.rating == 3).length,
+        'easy': logs.where((l) => l.rating == 4).length,
+      };
+    });
   }
 }
 

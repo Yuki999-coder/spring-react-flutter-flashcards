@@ -5,11 +5,13 @@ import '../../domain/entities/card.dart' as domain;
 import '../../domain/repositories/flashcard_repository.dart';
 import '../datasources/local_db/app_database.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/utils/srs_helper.dart';
 
 /// Implementation of FlashcardRepository using Drift (SQLite)
 class FlashcardRepositoryImpl implements FlashcardRepository {
   final AppDatabase _database;
   final Uuid _uuid = const Uuid();
+  final SRSHelper _srsHelper = SRSHelper();
 
   FlashcardRepositoryImpl(this._database);
 
@@ -271,7 +273,7 @@ class FlashcardRepositoryImpl implements FlashcardRepository {
       cardId: cardId,
       learningState: learningState,
       interval: interval,
-      easeFactor: easeFactor,
+      easeFactor: (easeFactor * 100).round(), // Store as int (e.g., 250 = 2.5)
       reviewCount: reviewCount,
       nextReview: nextReview?.toUtc().toIso8601String(),
       lastReviewed: lastReviewed.toUtc().toIso8601String(),
@@ -279,6 +281,69 @@ class FlashcardRepositoryImpl implements FlashcardRepository {
 
     final entity = await _database.getCardById(cardId);
     return _cardEntityToDomain(entity!);
+  }
+
+  @override
+  Future<domain.Card> saveReviewResult({
+    required domain.Card card,
+    required int rating,
+    int? timeTakenSeconds,
+  }) async {
+    // Get current SRS values from card
+    final currentInterval = card.interval ?? 0;
+    final currentRepetitions = card.reviewCount ?? 0;
+    final currentEaseFactor = card.easeFactor != null 
+        ? card.easeFactor! / 100.0  // Convert from int storage (250) to double (2.5)
+        : SRSHelper.defaultEaseFactor;
+    final currentLearningState = card.learningState ?? 'NEW';
+
+    // Calculate new SRS values using SM-2 algorithm
+    final result = _srsHelper.calculateNext(
+      rating: rating,
+      currentInterval: currentInterval,
+      currentRepetitions: currentRepetitions,
+      currentEaseFactor: currentEaseFactor,
+      currentLearningState: currentLearningState,
+    );
+
+    final now = DateTime.now();
+    final nextReviewDate = _srsHelper.calculateNextReviewDate(result.newInterval);
+
+    // Get deck to retrieve userId
+    final deckEntity = await _database.getDeckById(card.deckId);
+    final userId = deckEntity?.userId ?? 'local-user';
+
+    // Update card in database
+    await _database.updateCardSRS(
+      cardId: card.id,
+      learningState: result.newLearningState,
+      interval: result.newInterval,
+      easeFactor: (result.newEaseFactor * 100).round(), // Store as int
+      reviewCount: result.newRepetitions,
+      nextReview: nextReviewDate.toUtc().toIso8601String(),
+      lastReviewed: now.toUtc().toIso8601String(),
+    );
+
+    // Log review history for analytics and sync
+    await _database.insertReviewLog(
+      ReviewLogsCompanion.insert(
+        cardId: card.id,
+        deckId: card.deckId,
+        userId: userId,
+        rating: rating,
+        timeTakenSeconds: Value(timeTakenSeconds),
+        previousInterval: currentInterval,
+        newInterval: result.newInterval,
+        previousEaseFactor: (currentEaseFactor * 100).round(),
+        newEaseFactor: (result.newEaseFactor * 100).round(),
+        learningState: result.newLearningState,
+        reviewedAt: now.toUtc().toIso8601String(),
+      ),
+    );
+
+    // Return updated card
+    final updatedEntity = await _database.getCardById(card.id);
+    return _cardEntityToDomain(updatedEntity!);
   }
 
   @override

@@ -22,11 +22,19 @@ class ReviewScreen extends ConsumerStatefulWidget {
 class _ReviewScreenState extends ConsumerState<ReviewScreen> {
   final AppinioSwiperController _swiperController = AppinioSwiperController();
   bool _isFlipped = false;
+  DateTime? _cardShownAt; // Track when card was shown
 
   @override
   void dispose() {
     _swiperController.dispose();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // Start timer when first card is shown
+    _cardShownAt = DateTime.now();
   }
 
   @override
@@ -541,9 +549,10 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
       _submitReview(grade, card);
     }
 
-    // Reset flip state for next card
+    // Reset flip state and restart timer for next card
     setState(() {
       _isFlipped = false;
+      _cardShownAt = DateTime.now();
     });
   }
 
@@ -553,17 +562,25 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     // Trigger swipe animation
     _swiperController.swipe();
 
-    // Reset flip state
+    // Reset flip state and restart timer for next card
     setState(() {
       _isFlipped = false;
+      _cardShownAt = DateTime.now();
     });
   }
 
   void _submitReview(Grade grade, domain.Card card) {
+    // Calculate time taken in seconds
+    int? timeTaken;
+    if (_cardShownAt != null) {
+      timeTaken = DateTime.now().difference(_cardShownAt!).inSeconds;
+    }
+
     ref.read(reviewStatsProvider.notifier).recordReview(grade);
     ref.read(reviewSessionProvider(widget.deck.id).notifier).reviewCard(
           cardId: card.id,
           grade: grade,
+          timeTakenSeconds: timeTaken,
         );
   }
 
