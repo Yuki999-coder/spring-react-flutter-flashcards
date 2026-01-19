@@ -262,7 +262,7 @@ class FlashcardRepositoryImpl implements FlashcardRepository {
     required String cardId,
     required String learningState,
     required int interval,
-    required int easeFactor,
+    required double easeFactor,
     required int reviewCount,
     DateTime? nextReview,
     required DateTime lastReviewed,

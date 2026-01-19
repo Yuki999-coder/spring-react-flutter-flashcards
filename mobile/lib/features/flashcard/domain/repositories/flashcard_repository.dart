@@ -45,6 +45,9 @@ abstract class FlashcardRepository {
   /// Get all cards for a specific deck
   Future<List<Card>> getCardsByDeck(String deckId);
   
+  /// Alias for getCardsByDeck (for compatibility)
+  Future<List<Card>> getCardsByDeckId({required String deckId}) => getCardsByDeck(deckId);
+  
   /// Get a single card by ID
   Future<Card?> getCardById(String id);
   
@@ -82,7 +85,7 @@ abstract class FlashcardRepository {
     required String cardId,
     required String learningState,
     required int interval,
-    required int easeFactor,
+    required double easeFactor,
     required int reviewCount,
     DateTime? nextReview,
     required DateTime lastReviewed,

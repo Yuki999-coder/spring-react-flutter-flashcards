@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/deck.dart';
 import '../../domain/entities/card.dart' as domain;
 import '../providers/card_list_provider.dart';
+import '../providers/review_provider.dart';
 import '../widgets/card_list_item.dart';
 import 'add_edit_card_screen.dart';
+import 'review_screen.dart';
 
 class DeckDetailScreen extends ConsumerStatefulWidget {
   final Deck deck;
@@ -69,6 +71,9 @@ class _DeckDetailScreenState extends ConsumerState<DeckDetailScreen> {
             },
             child: Column(
               children: [
+                // Study button (if cards available)
+                _buildStudyButton(context, cards),
+
                 // Header with count
                 Container(
                   width: double.infinity,
@@ -425,6 +430,88 @@ class _DeckDetailScreenState extends ConsumerState<DeckDetailScreen> {
           ),
         );
       }
+    }
+  }
+
+  Widget _buildStudyButton(BuildContext context, List<domain.Card> allCards) {
+    // Check for due cards using reviewSessionProvider
+    final dueCardsAsync = ref.watch(reviewSessionProvider(widget.deck.id));
+
+    return dueCardsAsync.when(
+      data: (dueCards) {
+        final dueCount = dueCards.length;
+        
+        return Container(
+          width: double.infinity,
+          margin: const EdgeInsets.all(16),
+          child: ElevatedButton.icon(
+            onPressed: dueCount > 0
+                ? () => _startStudySession(context)
+                : null,
+            icon: const Icon(Icons.school, size: 24),
+            label: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Column(
+                children: [
+                  Text(
+                    dueCount > 0 ? 'Học ngay' : 'Không có thẻ cần học',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  if (dueCount > 0) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      '$dueCount thẻ đến hạn ôn tập',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.normal,
+                      ),
+                    ),
+                  ] else ...[
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Quay lại sau để ôn tập',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.normal,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: dueCount > 0
+                  ? Theme.of(context).primaryColor
+                  : Colors.grey,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        );
+      },
+      loading: () => Container(
+        margin: const EdgeInsets.all(16),
+        child: const LinearProgressIndicator(),
+      ),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+
+  void _startStudySession(BuildContext context) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ReviewScreen(deck: widget.deck),
+      ),
+    );
+    
+    // Refresh cards after study session
+    if (mounted) {
+      ref.read(cardListProvider(widget.deck.id).notifier).refresh();
+      ref.read(reviewSessionProvider(widget.deck.id).notifier).refresh();
     }
   }
 }

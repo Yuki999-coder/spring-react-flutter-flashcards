@@ -28,7 +28,7 @@ flutter run
 - **AddDeckDialog**: Form with validation & loading states
 - **DeckCard Widget**: Material Design 3 with sync badges
 
-### ✅ Phase 3: Card Management (Completed - NEW!)
+### ✅ Phase 3: Card Management (Completed)
 - **DeckDetailScreen**: View all cards in a deck
 - **AddEditCardScreen**: Create/edit cards with live preview
 - **CardListItem**: Display cards with learning state badges
@@ -36,8 +36,17 @@ flutter run
 - **Star Cards**: Mark important cards for quick access
 - **Form Validation**: Comprehensive validation for Front/Back fields
 
-### ⏭️ Phase 4: Next Steps
-- Study/review screen with flashcard animations
+### ✅ Phase 4: Study/Review Mode (Completed - NEW!)
+- **ReviewScreen**: Interactive flashcard study with flip animation
+- **SRS Algorithm**: SM-2 spaced repetition system (matching backend)
+- **Swipeable Cards**: Gesture-based card navigation
+- **Grade Buttons**: Again, Hard, Good, Easy with interval preview
+- **Progress Tracking**: Real-time statistics and accuracy
+- **Due Cards**: Automatic filtering of cards due for review
+- **Review Statistics**: Track performance during study sessions
+
+### ⏭️ Phase 5: Next Steps
+- Authentication (login/register)
 - SRS study/review screen with flashcard UI
 - Authentication (login/register)
 - API sync service (upload pending changes)
